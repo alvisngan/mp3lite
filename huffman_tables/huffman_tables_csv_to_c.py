@@ -30,6 +30,7 @@ else:
 # Creating the strings for each of the available table
 table_numbers = [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 24]
 all_table_str = ''
+all_arr_to_struct_str = ''
 
 for table_number in table_numbers:
     # Reading the Huffman tables
@@ -80,19 +81,7 @@ for table_number in table_numbers:
     xy_max_str = static_str + "uint8_t" + ' ' + s_prefix_str + "htb" + str(table_number) + "_xy_max = " + str(np.max((df.loc[:, "x"]))) + ';'
 
     # Assigning the array addresses to the table struct
-    # arr_to_struct_str = (static_str + "huffman_table_t" + ' ' + s_prefix_str + "htb_" + str(table_number) + ";\n" +
-    #                     "\n" + 
-    #                     s_prefix_str + "htb_" + str(table_number) + "->num = " + str(table_number) + ";\n" +
-    #                     s_prefix_str + "htb_" + str(table_number) + "->xy_max = " + str(np.max((df.loc[:, "x"]))) + ";\n" +
-    #                     s_prefix_str + "htb_" + str(table_number) + "->hlen_arrlen = " + str(np.size(unique_hlen)) + ";\n" +
-    #                     s_prefix_str + "htb_" + str(table_number) + "->hlen = " + s_prefix_str + "htb" + str(table_number) + "_hlen" + ";\n" +
-    #                     s_prefix_str + "htb_" + str(table_number) + "->hlen_cnt = " + s_prefix_str + "htb" + str(table_number) + "_hlen_cnt" + ";\n" +
-    #                     s_prefix_str + "htb_" + str(table_number) + "->hcod = (void *) " + s_prefix_str + "htb" + str(table_number) + "_hcod" + ";\n" +
-    #                     s_prefix_str + "htb_" + str(table_number) + "->idx = " + s_prefix_str + "htb" + str(table_number) + "_idx" + ';')
-
-    arr_to_struct_str = (static_str + "huffman_table_t" + ' ' + s_prefix_str + "htb_" + str(table_number) + ";\n" +
-                         "\n" + 
-                         "s_init_huffman_table(&" + s_prefix_str + "htb_" + str(table_number) + ", " +
+    arr_to_struct_str = ("s_init_huffman_table(&" + s_prefix_str + "htb_" + str(table_number) + ", " +
                          str(table_number) + ", " +
                          str(np.max((df.loc[:, "x"]))) + ", " +
                          str(np.size(unique_hlen)) + ", " +
@@ -103,22 +92,31 @@ for table_number in table_numbers:
                          ");")
 
     table_str = (xy_max_str + '\n' + hlen_arrlen_str + '\n' + hlen_str + '\n' +
-                hlen_cnt_str + '\n' + hcod_str + '\n' + idx_str +
-                "\n\n" + arr_to_struct_str + "\n\n\n")
+                hlen_cnt_str + '\n' + hcod_str + '\n' + idx_str + "\n\n\n")
 
     all_table_str += table_str
-
+    all_arr_to_struct_str += arr_to_struct_str + '\n'
 
 
 heading_str = ("/*\n" +
-               " * The Huffman code (hcod) are represented as integer arrays with\n" +
-               " * table 1 to 15 represented as uint8_t and table 16 to 31 as uint16_t \n"
+               " * The Huffman code (hcod) are represented as unsigned integer arrays with\n" +
+               " * table 1 to 15 represented as uint8_t and table 16 to 31 as uint16_t \n" +
                " *\n" +
-               " * The x and y values can be found with idx and max_xy with the following equation:\n" +
+               " * For big _values, the x and y values can be found with idx and max_xy \n" + 
+               " * with the following equations:\n" +
                " *" + indent + "x = (idx - y) / (max_xy + 1)\n" +
                " *" + indent + "y = idx - x * (max_xy + 1)\n" +
                " *\n" +
-               " * hcod arrays are casted to void* because table 1 to 15 are uint8_t* and 16 to 31 are uint16_t*\n" +
+               " * For count1 quadruples , the v, w, x and y values can be found \n" +
+               " * with idx with the following equations:\n" +
+               " *" + indent + "v = (idx & 0x8)? 1 : 0\n" +
+               " *" + indent + "u = (idx & 0x4)? 1 : 0\n" +
+               " *" + indent + "x = (idx & 0x2)? 1 : 0\n" +
+               " *" + indent + "y = (idx & 0x1)? 1 : 0\n" +
+               " * (where & is bitwise the AND operation)\n" +
+               " *\n" +
+               " * hcod arrays are casted to void* because table 1 to 15 are uint8_t*\n" +
+               " * and 16 to 31 are uint16_t*\n" +
                " *\n" +
                " * Reference: ISO/IEC 11172-3:1993 Table B.7.\n" +
                " */")
@@ -166,12 +164,17 @@ init_huffman_table_str = (static_str + "void " + s_prefix_str + "init_huffman_ta
                           indent + "htb->idx = htb_idx;\n"
                           "}")
 
-print (init_huffman_table_str)
+# Initializing the structs
+struct_init_str = static_str + "huffman_table_t"
+for table_number in table_numbers:
+    struct_init_str += ' ' + s_prefix_str + "htb_" + str(table_number) + ','
+struct_init_str = struct_init_str[:-1] + ';'
 
 file_text_str = ("#include <stdint.h>\n#include <assert.h>\n\n\n" + 
                  heading_str + '\n' + struct_str + "\n\n" +
                  init_huffman_table_str +
-                 "\n\n\n" + all_table_str)
+                 "\n\n\n" + all_table_str + "\n\n" + struct_init_str + "\n\n" +
+                 all_arr_to_struct_str + '\n')
 
 with open(file_name + file_extension, 'w') as text_file:
     text_file.write(file_text_str)
