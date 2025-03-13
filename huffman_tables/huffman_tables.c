@@ -6,6 +6,9 @@
  * The Huffman code (hcod) are represented as unsigned integer arrays with
  * table 1 to 15 represented as uint8_t and table 16 to 31 as uint16_t 
  *
+ * For table A and table B, ASCII values of 'a' and 'b' are casted to uint8_t
+ * and used in the num field, and xy_max field is unused
+ *
  * For big _values, the x and y values can be found with idx and max_xy 
  * with the following equations:
  *    x = (idx - y) / (max_xy + 1)
@@ -181,8 +184,24 @@ static uint8_t s_htb24_idx[] = {255, 17, 1, 16, 0, 18, 33, 19, 49, 34, 2, 32, 25
 
 
 
+static uint8_t s_htba_hlen_arrlen = 4;
+static uint8_t s_htba_hlen[] = {1, 4, 5, 6};
+static uint8_t s_htba_hlen_cnt[] = {1, 4, 5, 6};
+static uint8_t s_htba_hcod[] = {1, 4, 5, 6, 7, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5};
+static uint8_t s_htba_idx[] = {0, 2, 1, 4, 8, 9, 6, 3, 10, 12, 11, 15, 13, 14, 7, 5};
 
-static huffman_table_t s_htb_1, s_htb_2, s_htb_3, s_htb_5, s_htb_6, s_htb_7, s_htb_8, s_htb_9, s_htb_10, s_htb_11, s_htb_12, s_htb_13, s_htb_15, s_htb_16, s_htb_24;
+
+
+static uint8_t s_htbb_hlen_arrlen = 1;
+static uint8_t s_htbb_hlen[] = {4};
+static uint8_t s_htbb_hlen_cnt[] = {16};
+static uint8_t s_htbb_hcod[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+static uint8_t s_htbb_idx[] = {15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+
+
+
+
+static huffman_table_t s_htb_1, s_htb_2, s_htb_3, s_htb_5, s_htb_6, s_htb_7, s_htb_8, s_htb_9, s_htb_10, s_htb_11, s_htb_12, s_htb_13, s_htb_15, s_htb_16, s_htb_24, s_htb_a, s_htb_b;
 
 s_init_huffman_table(&s_htb_1, 1, 1, 3, s_htb1_hlen, s_htb1_hlen_cnt, (void *) s_htb1_hcod, s_htb1_idx);
 s_init_huffman_table(&s_htb_2, 2, 2, 4, s_htb2_hlen, s_htb2_hlen_cnt, (void *) s_htb2_hcod, s_htb2_idx);
@@ -199,4 +218,6 @@ s_init_huffman_table(&s_htb_13, 13, 15, 17, s_htb13_hlen, s_htb13_hlen_cnt, (voi
 s_init_huffman_table(&s_htb_15, 15, 15, 11, s_htb15_hlen, s_htb15_hlen_cnt, (void *) s_htb15_hcod, s_htb15_idx);
 s_init_huffman_table(&s_htb_16, 16, 15, 15, s_htb16_hlen, s_htb16_hlen_cnt, (void *) s_htb16_hcod, s_htb16_idx);
 s_init_huffman_table(&s_htb_24, 24, 15, 9, s_htb24_hlen, s_htb24_hlen_cnt, (void *) s_htb24_hcod, s_htb24_idx);
+s_init_huffman_table(&s_htb_a, (uint_8_t) 'a', 0, 4, s_htba_hlen, s_htba_hlen_cnt, (void *) s_htba_hcod, s_htba_idx);
+s_init_huffman_table(&s_htb_b, (uint_8_t) 'b', 0, 1, s_htbb_hlen, s_htbb_hlen_cnt, (void *) s_htbb_hcod, s_htbb_idx);
 

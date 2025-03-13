@@ -28,13 +28,13 @@ else:
 
 
 # Creating the strings for each of the available table
-table_numbers = [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 24]
+table_numbers = ['1', '2', '3', '5', '6', '7', '8', '9', '10', '11', '12', '13', '15', '16', '24', 'a', 'b']
 all_table_str = ''
 all_arr_to_struct_str = ''
 
 for table_number in table_numbers:
     # Reading the Huffman tables
-    filename = "huffman_tables_" + str(table_number) + ".csv"
+    filename = "huffman_tables_" + table_number + ".csv"
 
     df = pd.read_csv(filename, dtype = int)
 
@@ -51,44 +51,54 @@ for table_number in table_numbers:
         uint_type = "uint8_t"
     else:
         uint_type = "uint16_t"
-    hcod_str = uint_type + ' ' + s_prefix_str + "htb" + str(table_number) + "_hcod[] = {"
+    hcod_str = uint_type + ' ' + s_prefix_str + "htb" + table_number + "_hcod[] = {"
     for num in df.loc[:, "hcod_dec"].astype(str).values:
         hcod_str += num + ", "
     hcod_str = static_str + hcod_str[:-2] + "};"
 
     assert (np.max((df.loc[:, "idx"])) <= 255), "idx must be smaller than 256 to fit into uint8_t"
-    idx_str = "uint8_t" + ' ' + s_prefix_str + "htb" + str(table_number) + "_idx[] = {"
+    idx_str = "uint8_t" + ' ' + s_prefix_str + "htb" + table_number + "_idx[] = {"
     for num in df.loc[:, "idx"].astype(str).values:
         idx_str += num + ", "
     idx_str = static_str + idx_str[:-2] + "};"
 
     # Extract hlen into unique elements
-    hlen_str = "uint8_t" + ' ' + s_prefix_str + "htb" + str(table_number) + "_hlen[] = {"
+    hlen_str = "uint8_t" + ' ' + s_prefix_str + "htb" + table_number + "_hlen[] = {"
     unique_hlen = np.sort(df["hlen"].unique())
     for num in unique_hlen:
         hlen_str += str(num) + ", "
     hlen_str = static_str + hlen_str[:-2] + "};"
 
     # Count the number of each hlen
-    hlen_cnt_str = "uint8_t" + ' ' + s_prefix_str + "htb" + str(table_number) + "_hlen_cnt[] = {"
+    hlen_cnt_str = "uint8_t" + ' ' + s_prefix_str + "htb" + table_number + "_hlen_cnt[] = {"
     hlen_cnt_dict = df["hlen"].value_counts().to_dict()
     for hlen in unique_hlen:
         hlen_cnt_str += str(hlen_cnt_dict[hlen]) + ", "
     hlen_cnt_str = static_str + hlen_cnt_str[:-2] + "};"
 
     # Useful constants
-    hlen_arrlen_str = static_str + "uint8_t" + ' ' + s_prefix_str + "htb" + str(table_number) + "_hlen_arrlen = " + str(np.size(unique_hlen)) + ';'
-    xy_max_str = static_str + "uint8_t" + ' ' + s_prefix_str + "htb" + str(table_number) + "_xy_max = " + str(np.max((df.loc[:, "x"]))) + ';'
+    hlen_arrlen_str = static_str + "uint8_t" + ' ' + s_prefix_str + "htb" + table_number + "_hlen_arrlen = " + str(np.size(unique_hlen)) + ';'
+
+    xy_max_str = ''
+    xy_max = 0
+    if (table_number != 'a' and table_number != 'b'):
+        xy_max = np.max((df.loc[:, "x"]))
+        xy_max_str = static_str + "uint8_t" + ' ' + s_prefix_str + "htb" + table_number + "_xy_max = " + str(xy_max) + ';'
 
     # Assigning the array addresses to the table struct
-    arr_to_struct_str = ("s_init_huffman_table(&" + s_prefix_str + "htb_" + str(table_number) + ", " +
-                         str(table_number) + ", " +
-                         str(np.max((df.loc[:, "x"]))) + ", " +
+    # Casting 'a' and 'b' to uint8_t as init_huffman_table takes integer parameter
+    table_number_cast = table_number
+    if (table_number == 'a' or table_number == 'b'):
+        table_number_cast = "(uint_8_t) '" + table_number + "'"
+
+    arr_to_struct_str = ("s_init_huffman_table(&" + s_prefix_str + "htb_" + table_number + ", " +
+                         table_number_cast + ", " +
+                         str(xy_max) + ", " +
                          str(np.size(unique_hlen)) + ", " +
-                         s_prefix_str + "htb" + str(table_number) + "_hlen" + ", " +
-                         s_prefix_str + "htb" + str(table_number) + "_hlen_cnt" + ", " +
-                         "(void *) " + s_prefix_str + "htb" + str(table_number) + "_hcod" + ", " +
-                         s_prefix_str + "htb" + str(table_number) + "_idx" + 
+                         s_prefix_str + "htb" + table_number + "_hlen" + ", " +
+                         s_prefix_str + "htb" + table_number + "_hlen_cnt" + ", " +
+                         "(void *) " + s_prefix_str + "htb" + table_number + "_hcod" + ", " +
+                         s_prefix_str + "htb" + table_number + "_idx" + 
                          ");")
 
     table_str = (xy_max_str + '\n' + hlen_arrlen_str + '\n' + hlen_str + '\n' +
@@ -101,6 +111,9 @@ for table_number in table_numbers:
 heading_str = ("/*\n" +
                " * The Huffman code (hcod) are represented as unsigned integer arrays with\n" +
                " * table 1 to 15 represented as uint8_t and table 16 to 31 as uint16_t \n" +
+               " *\n" +
+               " * For table A and table B, ASCII values of 'a' and 'b' are casted to uint8_t\n" +
+               " * and used in the num field, and xy_max field is unused\n" +
                " *\n" +
                " * For big _values, the x and y values can be found with idx and max_xy \n" + 
                " * with the following equations:\n" +
@@ -167,7 +180,7 @@ init_huffman_table_str = (static_str + "void " + s_prefix_str + "init_huffman_ta
 # Initializing the structs
 struct_init_str = static_str + "huffman_table_t"
 for table_number in table_numbers:
-    struct_init_str += ' ' + s_prefix_str + "htb_" + str(table_number) + ','
+    struct_init_str += ' ' + s_prefix_str + "htb_" + table_number + ','
 struct_init_str = struct_init_str[:-1] + ';'
 
 file_text_str = ("#include <stdint.h>\n#include <assert.h>\n\n\n" + 
