@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#define IS_BIG_ENDIAN (!*(unsigned char *)&(uint16_t){1})
+
 /*
  * protection   If 1, CRC protected
  *              If 0, no redundancy
@@ -46,4 +48,96 @@ typedef struct {
     uint16_t padding;
 } frame_header_info_t;
 
-static uint8_t s_decode_frame_header(uint32_t *frame_header);
+
+static uint32_t s_swap_endian_u32(uint32_t val);
+
+/* 
+ * \param frame_header  The frame header bitstream stored as uint32_t,
+ *                      including the 11/12 bits syncword
+ *
+ * \param header_info   The address of the header information struct
+ *
+ * \return              0: sucess
+ *                      1: invalid syncword
+ *                      2: invalid/unsupported layer type
+ *                      3: invalid bitrate_index
+ *                      4: invalid sampling frequency
+ */
+static uint8_t s_decode_frame_header(uint32_t frame_header, 
+                                     frame_header_info_t *header_info);
+
+static uint32_t s_swap_endian_u32(uint32_t val)
+{
+    uint8_t *val_ptr = (uint8_t *) &val;
+
+    return ((uint32_t) val_ptr[0] << 24 |
+            (uint32_t) val_ptr[1] << 16 |
+            (uint32_t) val_ptr[2] << 8 |
+            (uint32_t) val_ptr[3]);
+}
+
+/// TODO: use bitfield flags for return code incase of multiple error
+static uint8_t s_decode_frame_header(uint32_t frame_header, 
+                                     frame_header_info_t *header_info)
+{
+    assert(header_info);
+
+    uint8_t result = 0;
+
+#if !defined (IS_BIG_ENDIAN) || !defined (MP3LITE_USR_DEF_BIG_ENDIAN)
+    /* Swaping byte order for little-endian systems (a.k.a. most systems) */
+    frame_header = s_swap_endian_u32(frame_header);
+#endif
+
+    /* ensure syncword is valid (first 11 bits) */
+    if ((frame_header & 0xFFE00000) != 0xFFE00000)
+    {
+        result = 1;
+    }
+
+    header_info->id = (frame_header & 0x00080000) ? 1 : 0;
+    
+    uint8_t layer_idx = (uint8_t) ((frame_header & 0x00060000) >> 17);
+    uint8_t layer_num = ~layer_idx + 1;
+    if (layer_num != 3) /* only supporting layer 3 (MP3) */
+    {
+        result = 2;
+    }
+    header_info->layer = layer_num;
+    
+    header_info->protection = (frame_header & 0x00010000) ? 1 : 0;
+
+    uint8_t bitrate_idx = (uint8_t) ((frame_header & 0x0000F000) >> 12);
+    if (bitrate_idx >= 15)
+    {
+        result = 3;
+    }
+    uint16_t bitrate_layer3[] = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
+    header_info->bitrate = bitrate_layer3[bitrate_idx];
+
+    uint8_t freq_idx = (uint8_t) ((frame_header & 0x00000C00) >> 10);
+
+    switch (freq_idx) 
+    {
+        case 0:
+            header_info->freq = 44100;
+            break;
+        case 1:
+            header_info->freq = 48000;
+            break;
+        case 2:
+            header_info->freq = 32000;
+            break;
+        default:
+            header_info->freq = 0;
+            result = 4;
+    }
+
+    ///TODO: skip padding for now, need more reading
+
+    header_info->mode = (uint8_t) ((frame_header & 0x000000C0) >> 6);
+    header_info->mode_ext = (uint8_t) ((frame_header & 0x00000030) >> 4);
+    header_info->emphasis = (uint8_t) (frame_header & 0x00000030);
+
+    return result;
+}
