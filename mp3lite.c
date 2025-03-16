@@ -51,6 +51,12 @@ typedef struct {
 
 static uint32_t s_swap_endian_u32(uint32_t val);
 
+/* Error log for s_decode_frame_header() */
+#define DECODE_HEADER_ERR_SYNCWORD  0x01
+#define DECODE_HEADER_ERR_LAYER     0x02
+#define DECODE_HEADER_ERR_BITRATE   0x04
+#define DECODE_HEADER_ERR_FREQ      0x08
+
 /* 
  * \param frame_header  The frame header bitstream stored as uint32_t,
  *                      including the 11/12 bits syncword
@@ -58,10 +64,13 @@ static uint32_t s_swap_endian_u32(uint32_t val);
  * \param header_info   The address of the header information struct
  *
  * \return              0: sucess
- *                      1: invalid syncword
- *                      2: invalid/unsupported layer type
- *                      3: invalid bitrate_index
- *                      4: invalid sampling frequency
+ *                      
+ *                      The error log is stored in a one byte bitfield
+ *                      err_log = 0b0000DCBA
+ *                      A: invalid syncword
+ *                      B: invalid/unsupported layer type
+ *                      C: invalid bitrate
+ *                      D: invalid sampling frequency
  */
 static uint8_t s_decode_frame_header(uint32_t frame_header, 
                                      frame_header_info_t *header_info);
@@ -92,31 +101,30 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
     /* ensure syncword is valid (first 11 bits) */
     if ((frame_header & 0xFFE00000) != 0xFFE00000)
     {
-        result = 1;
+        result |= DECODE_HEADER_ERR_SYNCWORD;
     }
 
     header_info->id = (frame_header & 0x00080000) ? 1 : 0;
     
     uint8_t layer_idx = (uint8_t) ((frame_header & 0x00060000) >> 17);
     uint8_t layer_num = ~layer_idx + 1;
-    if (layer_num != 3) /* only supporting layer 3 (MP3) */
+    if (layer_num != 3) // only supporting layer 3 (MP3)
     {
-        result = 2;
+        result |= DECODE_HEADER_ERR_LAYER;
     }
     header_info->layer = layer_num;
     
-    header_info->protection = (frame_header & 0x00010000) ? 1 : 0;
+    header_info->protection = (frame_header & 0x00010000) ? 0 : 1; // inverted
 
     uint8_t bitrate_idx = (uint8_t) ((frame_header & 0x0000F000) >> 12);
     if (bitrate_idx >= 15)
     {
-        result = 3;
+        result |= DECODE_HEADER_ERR_BITRATE;
     }
     uint16_t bitrate_layer3[] = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
     header_info->bitrate = bitrate_layer3[bitrate_idx];
 
     uint8_t freq_idx = (uint8_t) ((frame_header & 0x00000C00) >> 10);
-
     switch (freq_idx) 
     {
         case 0:
@@ -130,7 +138,7 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
             break;
         default:
             header_info->freq = 0;
-            result = 4;
+            result |= DECODE_HEADER_ERR_FREQ;
     }
 
     ///TODO: skip padding for now, need more reading
