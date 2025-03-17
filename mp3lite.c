@@ -93,7 +93,7 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
 
     uint8_t result = 0;
 
-#if !defined (IS_BIG_ENDIAN) || !defined (MP3LITE_USR_DEF_BIG_ENDIAN)
+#if !defined (IS_BIG_ENDIAN) || !defined (MP3LITE_BIG_ENDIAN)
     /* Swaping byte order for little-endian systems (a.k.a. most systems) */
     frame_header = s_swap_endian_u32(frame_header);
 #endif
