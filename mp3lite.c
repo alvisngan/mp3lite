@@ -75,6 +75,13 @@ typedef struct {
 static uint8_t s_decode_frame_header(uint32_t frame_header, 
                                      frame_header_info_t *header_info);
 
+/*
+ * This function will assign layer number to header_info, even for un-supported
+ * layer types
+ *
+ * \return  true:   layer 3
+ *          false:  all other layers
+ */
 static bool s_decode_frame_header_layer(uint32_t frame_header, 
                                         frame_header_info_t *header_info);
 
