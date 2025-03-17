@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #define IS_BIG_ENDIAN (!*(unsigned char *)&(uint16_t){1})
+static uint32_t s_swap_endian_u32(uint32_t val);
 
 /*
  * protection   If 1, CRC protected
@@ -49,7 +50,6 @@ typedef struct {
 } frame_header_info_t;
 
 
-static uint32_t s_swap_endian_u32(uint32_t val);
 
 /* Error log for s_decode_frame_header() */
 #define DECODE_HEADER_ERR_SYNCWORD  0x01
@@ -75,6 +75,16 @@ static uint32_t s_swap_endian_u32(uint32_t val);
 static uint8_t s_decode_frame_header(uint32_t frame_header, 
                                      frame_header_info_t *header_info);
 
+static bool s_decode_frame_header_layer(uint32_t frame_header, 
+                                        frame_header_info_t *header_info);
+
+static bool s_decode_frame_header_bitrate(uint32_t frame_header,
+                                          frame_header_info_t *header_info);
+
+static bool s_decode_frame_header_freq(uint32_t frame_header,
+                                       frame_header_info_t *header_info);
+
+
 static uint32_t s_swap_endian_u32(uint32_t val)
 {
     uint8_t *val_ptr = (uint8_t *) &val;
@@ -85,7 +95,7 @@ static uint32_t s_swap_endian_u32(uint32_t val)
             (uint32_t) val_ptr[3]);
 }
 
-/// TODO: use bitfield flags for return code incase of multiple error
+
 static uint8_t s_decode_frame_header(uint32_t frame_header, 
                                      frame_header_info_t *header_info)
 {
@@ -106,20 +116,59 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
 
     header_info->id = (frame_header & 0x00080000) ? 1 : 0;
     
-    uint8_t layer_idx = (uint8_t) ((frame_header & 0x00060000) >> 17);
-    uint8_t layer_num = ((~layer_idx) & 0x03) + 1;
-    if (layer_num != 3) // only supporting layer 3 (MP3)
-    {
-        result |= DECODE_HEADER_ERR_LAYER;
-    }
-    header_info->layer = layer_num;
+    bool layer_b = s_decode_frame_header_layer(frame_header, header_info);
+    result |= (layer_b) ? 0 : DECODE_HEADER_ERR_LAYER;
     
     header_info->protection = (frame_header & 0x00010000) ? 0 : 1; // inverted
+
+    bool bitrate_b = s_decode_frame_header_bitrate(frame_header, header_info);
+    result |= (bitrate_b) ? 0 : DECODE_HEADER_ERR_BITRATE;
+    
+
+    bool freq_b = s_decode_frame_header_freq(frame_header, header_info);
+    result |= (freq_b) ? 0 : DECODE_HEADER_ERR_FREQ;
+
+    ///TODO: skip padding for now, need more reading
+
+    header_info->mode = (uint8_t) ((frame_header & 0x000000C0) >> 6);
+    header_info->mode_ext = (uint8_t) ((frame_header & 0x00000030) >> 4);
+    header_info->emphasis = (uint8_t) (frame_header & 0x00000030);
+
+    return result;
+}
+
+
+static bool s_decode_frame_header_layer(uint32_t frame_header, 
+                                        frame_header_info_t *header_info)
+{
+    assert(header_info);
+    bool success = true;
+
+    uint8_t layer_idx = (uint8_t) ((frame_header & 0x00060000) >> 17);
+    uint8_t layer_num = ((~layer_idx) & 0x03) + 1;
+
+    /* only supporting layer 3 (MP3) */
+    if (layer_num != 3)
+    {
+        success = false;
+    }
+
+    header_info->layer = layer_num;    
+
+    return success;
+}
+
+
+static bool s_decode_frame_header_bitrate(uint32_t frame_header,
+                                          frame_header_info_t *header_info)
+{
+    assert(header_info);
+    bool success = true;
 
     uint32_t bitrate_idx = (frame_header & 0x0000F000) >> 12;
     if (bitrate_idx >= 15)
     {
-        result |= DECODE_HEADER_ERR_BITRATE;
+        success |= false;
         header_info->bitrate = 0;
     }
     else
@@ -127,7 +176,16 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
         uint16_t bitrate_layer3[] = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
         header_info->bitrate = bitrate_layer3[bitrate_idx];
     }
-    
+
+    return success;
+}             
+
+
+static bool s_decode_frame_header_freq(uint32_t frame_header,
+                                       frame_header_info_t *header_info)
+{
+    assert(header_info);
+    bool success = true;
 
     uint32_t freq_idx = (frame_header & 0x00000C00) >> 10;
     switch (freq_idx) 
@@ -143,14 +201,8 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
             break;
         default:
             header_info->freq = 0;
-            result |= DECODE_HEADER_ERR_FREQ;
+            success = false;
     }
 
-    ///TODO: skip padding for now, need more reading
-
-    header_info->mode = (uint8_t) ((frame_header & 0x000000C0) >> 6);
-    header_info->mode_ext = (uint8_t) ((frame_header & 0x00000030) >> 4);
-    header_info->emphasis = (uint8_t) (frame_header & 0x00000030);
-
-    return result;
+    return success;
 }
