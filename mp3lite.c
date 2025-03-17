@@ -120,9 +120,14 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
     if (bitrate_idx >= 15)
     {
         result |= DECODE_HEADER_ERR_BITRATE;
+        header_info->bitrate = 0;
     }
-    uint16_t bitrate_layer3[] = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
-    header_info->bitrate = bitrate_layer3[bitrate_idx];
+    else
+    {
+        uint16_t bitrate_layer3[] = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
+        header_info->bitrate = bitrate_layer3[bitrate_idx];
+    }
+    
 
     uint32_t freq_idx = (frame_header & 0x00000C00) >> 10;
     switch (freq_idx) 
