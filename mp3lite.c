@@ -107,7 +107,7 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
     header_info->id = (frame_header & 0x00080000) ? 1 : 0;
     
     uint8_t layer_idx = (uint8_t) ((frame_header & 0x00060000) >> 17);
-    uint8_t layer_num = ~layer_idx + 1;
+    uint8_t layer_num = ((~layer_idx) & 0x03) + 1;
     if (layer_num != 3) // only supporting layer 3 (MP3)
     {
         result |= DECODE_HEADER_ERR_LAYER;
