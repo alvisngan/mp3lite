@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #define IS_BIG_ENDIAN (!*(unsigned char *)&(uint16_t){1})
-static uint32_t s_swap_endian_u32(uint32_t val);
+static uint32_t s_swap_endian_u32(const uint32_t val);
 
 /*
  * protection   If 1, CRC protected
@@ -82,17 +82,17 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
  * \return  true:   layer 3
  *          false:  all other layers
  */
-static bool s_decode_frame_header_layer(uint32_t frame_header, 
+static bool s_decode_frame_header_layer(const uint32_t frame_header, 
                                         frame_header_info_t *header_info);
 
-static bool s_decode_frame_header_bitrate(uint32_t frame_header,
+static bool s_decode_frame_header_bitrate(const uint32_t frame_header,
                                           frame_header_info_t *header_info);
 
-static bool s_decode_frame_header_freq(uint32_t frame_header,
+static bool s_decode_frame_header_freq(const uint32_t frame_header,
                                        frame_header_info_t *header_info);
 
 
-static uint32_t s_swap_endian_u32(uint32_t val)
+static uint32_t s_swap_endian_u32(const uint32_t val)
 {
     uint8_t *val_ptr = (uint8_t *) &val;
 
@@ -145,7 +145,7 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
 }
 
 
-static bool s_decode_frame_header_layer(uint32_t frame_header, 
+static bool s_decode_frame_header_layer(const uint32_t frame_header, 
                                         frame_header_info_t *header_info)
 {
     assert(header_info);
@@ -166,7 +166,7 @@ static bool s_decode_frame_header_layer(uint32_t frame_header,
 }
 
 
-static bool s_decode_frame_header_bitrate(uint32_t frame_header,
+static bool s_decode_frame_header_bitrate(const uint32_t frame_header,
                                           frame_header_info_t *header_info)
 {
     assert(header_info);
@@ -180,7 +180,7 @@ static bool s_decode_frame_header_bitrate(uint32_t frame_header,
     }
     else
     {
-        uint16_t bitrate_layer3[] = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
+        const uint16_t bitrate_layer3[] = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
         header_info->bitrate = bitrate_layer3[bitrate_idx];
     }
 
@@ -188,7 +188,7 @@ static bool s_decode_frame_header_bitrate(uint32_t frame_header,
 }             
 
 
-static bool s_decode_frame_header_freq(uint32_t frame_header,
+static bool s_decode_frame_header_freq(const uint32_t frame_header,
                                        frame_header_info_t *header_info)
 {
     assert(header_info);
