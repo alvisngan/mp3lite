@@ -5,6 +5,7 @@ import pandas as pd
 indent = "    "                 # 4 spaces as indent
 static_var = True               # Apply static keyword to variables
 static_prefix = True            # Apply s_ prefix on static variable names
+const_var = True                # Applt const keyword to variables
 file_name = "huffman_tables"    # Output filename
 file_extension = ".c"           # Output file extension
 
@@ -18,6 +19,10 @@ if static_prefix == True:
 else:
     s_prefix_str = '' 
 
+if const_var == True:
+    const_str = "const "
+else:
+    const_str = ''
 
 
 # unused_tables = [4, 14]
@@ -54,36 +59,36 @@ for table_number in table_numbers:
     hcod_str = uint_type + ' ' + s_prefix_str + "htb" + table_number + "_hcod[] = {"
     for num in df.loc[:, "hcod_dec"].astype(str).values:
         hcod_str += num + ", "
-    hcod_str = static_str + hcod_str[:-2] + "};"
+    hcod_str = static_str + const_str + hcod_str[:-2] + "};"
 
     assert (np.max((df.loc[:, "idx"])) <= 255), "idx must be smaller than 256 to fit into uint8_t"
     idx_str = "uint8_t" + ' ' + s_prefix_str + "htb" + table_number + "_idx[] = {"
     for num in df.loc[:, "idx"].astype(str).values:
         idx_str += num + ", "
-    idx_str = static_str + idx_str[:-2] + "};"
+    idx_str = static_str + const_str + idx_str[:-2] + "};"
 
     # Extract hlen into unique elements
     hlen_str = "uint8_t" + ' ' + s_prefix_str + "htb" + table_number + "_hlen[] = {"
     unique_hlen = np.sort(df["hlen"].unique())
     for num in unique_hlen:
         hlen_str += str(num) + ", "
-    hlen_str = static_str + hlen_str[:-2] + "};"
+    hlen_str = static_str + const_str + hlen_str[:-2] + "};"
 
     # Count the number of each hlen
     hlen_cnt_str = "uint8_t" + ' ' + s_prefix_str + "htb" + table_number + "_hlen_cnt[] = {"
     hlen_cnt_dict = df["hlen"].value_counts().to_dict()
     for hlen in unique_hlen:
         hlen_cnt_str += str(hlen_cnt_dict[hlen]) + ", "
-    hlen_cnt_str = static_str + hlen_cnt_str[:-2] + "};"
+    hlen_cnt_str = static_str + const_str + hlen_cnt_str[:-2] + "};"
 
     # Useful constants
-    hlen_arrlen_str = static_str + "uint8_t" + ' ' + s_prefix_str + "htb" + table_number + "_hlen_arrlen = " + str(np.size(unique_hlen)) + ';'
+    hlen_arrlen_str = static_str + const_str + "uint8_t" + ' ' + s_prefix_str + "htb" + table_number + "_hlen_arrlen = " + str(np.size(unique_hlen)) + ';'
 
     xy_max_str = ''
     xy_max = 0
     if (table_number != 'a' and table_number != 'b'):
         xy_max = np.max((df.loc[:, "x"]))
-        xy_max_str = static_str + "uint8_t" + ' ' + s_prefix_str + "htb" + table_number + "_xy_max = " + str(xy_max) + ';'
+        xy_max_str = static_str + const_str + "uint8_t" + ' ' + s_prefix_str + "htb" + table_number + "_xy_max = " + str(xy_max) + ';'
 
     # Assigning the array addresses to the table struct
     # Casting 'a' and 'b' to uint8_t as init_huffman_table takes integer parameter
