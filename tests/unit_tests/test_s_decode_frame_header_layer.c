@@ -21,7 +21,9 @@
  */
 
 #include "../../mp3lite.c"
-#include "../test_return_code.h"
+#include "../test_exit_code.h"
+
+#include <stdio.h>
 
 /*
  * TEST_0
@@ -211,32 +213,37 @@ static bool s_test_decode_frame_header_layer_t4(void)
 
 int main(void)
 {
-    int return_code = 0;
+    int exit_code = 0;
 
     if (!s_test_decode_frame_header_layer_t0())
     {
-        return_code &= TEST_0_FAILED;
+        exit_code |= TEST_0_FAILED;
     }
 
     if (!s_test_decode_frame_header_layer_t1())
     {
-        return_code &= TEST_1_FAILED;
+        exit_code |= TEST_1_FAILED;
     }
 
     if (!s_test_decode_frame_header_layer_t2())
     {
-        return_code &= TEST_2_FAILED;
+        exit_code |= TEST_2_FAILED;
     }
 
     if (!s_test_decode_frame_header_layer_t3())
     {
-        return_code &= TEST_3_FAILED;
+        exit_code |= TEST_3_FAILED;
     }
 
     if (!s_test_decode_frame_header_layer_t4())
     {
-        return_code &= TEST_4_FAILED;
+        exit_code |= TEST_4_FAILED;
     }
 
-    return return_code;
+    if (exit_code)
+    {
+        printf("EXIT_CODE: %d", exit_code);
+    }
+
+    return exit_code;
 }
