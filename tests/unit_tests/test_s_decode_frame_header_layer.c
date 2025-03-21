@@ -188,11 +188,14 @@ static bool s_test_decode_frame_header_layer_t4(void)
 
     /* =============== Layer 3 =============== */
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
-    /* 0000 0000 0000 0000 0000 0000 0000 0000 */
-    uint32_t frame_header = 0x00000000;
+    /* 0000 0000 0000 0010 0000 0000 0000 0000 */
+    uint32_t frame_header = 0x00020000;
     frame_header_info_t header_info;
-    uint8_t l3_return = s_decode_frame_header(frame_header, &header_info);
-    bool l3 = (l3_return & DECODE_HEADER_ERR_LAYER) ? false : true; //result should be zero
+
+    /* s_decode_frame_header will swap endianess */
+    frame_header = s_swap_endian_u32(frame_header);
+    uint8_t layer3_return = s_decode_frame_header(frame_header, &header_info);
+    bool layer3 = (layer3_return & DECODE_HEADER_ERR_LAYER) ? false : true; //result should be zero
 
     /* Err flag will be set if layer is not 3 (if the above tests pass) */
     /* We don't need to check every possible layers                     */
@@ -201,14 +204,11 @@ static bool s_test_decode_frame_header_layer_t4(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0100 0000 0000 0000 0000 */
     frame_header = 0x00040000;
-    uint8_t l2_return = s_decode_frame_header(frame_header, &header_info);
-    bool l2 = (l2_return & DECODE_HEADER_ERR_LAYER) ? true : false; //result should NOT be zero
+    uint8_t layer2_return = s_decode_frame_header(frame_header, &header_info);
+    bool layer2 = (layer2_return & DECODE_HEADER_ERR_LAYER) ? true : false; //result should NOT be zero
 
-    return (l3 && l2);
+    return (layer3 && layer2);
 }
-
-// /* Error log for s_decode_frame_header() */
-// #define DECODE_HEADER_ERR_LAYER     0x02
 
 
 int main(void)
@@ -242,7 +242,7 @@ int main(void)
 
     if (exit_code)
     {
-        printf("EXIT_CODE: %d", exit_code);
+        printf("    EXIT_CODE: %d\n", exit_code);
     }
 
     return exit_code;
