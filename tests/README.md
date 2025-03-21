@@ -1,3 +1,12 @@
+## Running the Tests
+Navigate to the `tests` directory and use the following commands in the terminal:
+```
+$ cd build
+$ cmake ..
+$ cmake --build .
+$ ctest --output-on-failure
+```
+
 ## Test Exit Code
 The test returns an integer exit code indicating success (0) or failure (non-0). The non-zero integer exit code is a bitfield indicating which test(s) within a test program has/have failed, where the least significant bit (LSB) represent `TEST_0`. The following table shows an example of exit codes for a test program with four tests.  
 
