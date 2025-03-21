@@ -1,4 +1,19 @@
 /*
+ *      ERR_CODE    0   1   2   3   4   5   6   7
+ *      TEST_0          F       F       F       F
+ *      TEST_1              F   F           F   F
+ *      TEST_2                      F   F   F   F
+ *      TEST_3                                  
+ *
+ *      ERR_CODE    8   9   10  11  12  13  14  15
+ *      TEST_0          F       F       F       F
+ *      TEST_1              F   F           F   F
+ *      TEST_2                      F   F   F   F
+ *      TEST_3      F   F   F   F   F   F   F   F
+ */
+
+
+/*
  * useful link: http://www.mp3-tech.org/programmer/frame_header.html
  *
  *       AAAAAAAA AAABBCCD EEEEFFGH IIJJKLMM 
