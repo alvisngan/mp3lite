@@ -1,19 +1,4 @@
 /*
- *      ERR_CODE    0   1   2   3   4   5   6   7
- *      TEST_0          F       F       F       F
- *      TEST_1              F   F           F   F
- *      TEST_2                      F   F   F   F
- *      TEST_3                                  
- *
- *      ERR_CODE    8   9   10  11  12  13  14  15
- *      TEST_0          F       F       F       F
- *      TEST_1              F   F           F   F
- *      TEST_2                      F   F   F   F
- *      TEST_3      F   F   F   F   F   F   F   F
- */
-
-
-/*
  * useful link: http://www.mp3-tech.org/programmer/frame_header.html
  *
  *       AAAAAAAA AAABBCCD EEEEFFGH IIJJKLMM 
@@ -36,15 +21,16 @@
  */
 
 #include "../../mp3lite.c"
+#include "../test_return_code.h"
 
-#include <stdio.h>
-
-static bool s_test_decode_frame_header_layer(void);
-static bool s_test_decode_frame_header_bitrate(void);
-static bool s_test_decode_frame_header_freq(void);
-static bool s_test_decode_frame_header(void);
-
-static bool s_test_decode_frame_header_layer(void)
+/*
+ * TEST_0
+ *
+ * Test s_decode_frame_header_layer return and header_info.layer 
+ * if header indicates Layer 1
+ *
+ */
+static bool s_test_decode_frame_header_layer_t0(void)
 {
     /*
      *  CC  Description
@@ -54,126 +40,203 @@ static bool s_test_decode_frame_header_layer(void)
      *  10  Layer 2
      *  11  Layer 1
      */
-     const char *TEST_GROUP_NAME = "DECODE FRAME HEADER LAYER";
+    const char *TEST_GROUP_NAME = "DECODE FRAME HEADER LAYER";
 
-    /* =============================== TEST 0 =============================== */
     bool test_0 = false;
 
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0110 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00060000;
-    frame_header_info_t header_info_0;
+    frame_header_info_t header_info;
     
-    test_0 = s_decode_frame_header_layer(frame_header, &header_info_0);
+    test_0 = s_decode_frame_header_layer(frame_header, &header_info);
 
     test_0 = !test_0; // The func returns false for non-layer 3 layers
     if (test_0)
     {    
-        test_0 = (header_info_0.layer == 1) ? true : false;
+        test_0 = (header_info.layer == 1) ? true : false;
     }
 
-    if (!test_0)
-    {
-        printf("%s - TEST 0 FAILED\n", TEST_GROUP_NAME);
-    }
+    return test_0;
+}
 
-    /* =============================== TEST 1 =============================== */
+
+/*
+ * TEST_1
+ *
+ * Test s_decode_frame_header_layer return and header_info.layer 
+ * if header indicates Layer 2
+ */
+static bool s_test_decode_frame_header_layer_t1(void)
+{
+    /*
+     *  CC  Description
+     *  --------------- 
+     *  00  reserved
+     *  01  Layer 3
+     *  10  Layer 2
+     *  11  Layer 1
+     */
+     
     bool test_1 = false;
 
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0100 0000 0000 0000 0000 */
-    frame_header = 0x00040000;
-    frame_header_info_t header_info_1;
+    uint32_t frame_header = 0x00040000;
+    frame_header_info_t header_info;
     
-    test_1 = s_decode_frame_header_layer(frame_header, &header_info_1);
+    test_1 = s_decode_frame_header_layer(frame_header, &header_info);
 
     test_1 = !test_1; // The func returns false for non-layer 3 layers
     if (test_1)
     {
-        test_1 = (header_info_1.layer == 2) ? true : false;
+        test_1 = (header_info.layer == 2) ? true : false;
     }
 
-    if (!test_1)
-    {
-        printf("%s - TEST 1 FAILED\n", TEST_GROUP_NAME);
-    }
+    return test_1;
+}
 
-    /* =============================== TEST 2 =============================== */
+
+ /*
+ * TEST_2
+ *
+ * Test s_decode_frame_header_layer return and header_info.layer 
+ * if header indicates Layer 3
+ *
+ */
+static bool s_test_decode_frame_header_layer_t2(void)
+{
+    /*
+     *  CC  Description
+     *  --------------- 
+     *  00  reserved
+     *  01  Layer 3
+     *  10  Layer 2
+     *  11  Layer 1
+     */
+
     bool test_2 = false;
 
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0010 0000 0000 0000 0000 */
-    frame_header = 0x00020000;
-    frame_header_info_t header_info_2;
+    uint32_t frame_header = 0x00020000;
+    frame_header_info_t header_info;
     
-    test_2 = s_decode_frame_header_layer(frame_header, &header_info_2);
+    test_2 = s_decode_frame_header_layer(frame_header, &header_info);
 
     if (test_2)
     {
-        test_2 = (header_info_2.layer == 3) ? true : false;
+        test_2 = (header_info.layer == 3) ? true : false;
     }
 
-    if (!test_2)
-    {
-        printf("%s - TEST 2 FAILED\n", TEST_GROUP_NAME);
-    }
+    return test_2;
+}
 
-    /* =============================== TEST 3 =============================== */
+
+/*
+ * TEST_3
+ *
+ * Test s_decode_frame_header_layer return and header_info.layer 
+ * if header indicates Layer number that's not 1, 2, or 3
+ *
+ */
+ static bool s_test_decode_frame_header_layer_t3(void)
+ {
+    /*
+     *  CC  Description
+     *  --------------- 
+     *  00  reserved
+     *  01  Layer 3
+     *  10  Layer 2
+     *  11  Layer 1
+     */
+
     bool test_3 = false;
 
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0000 0000 0000 0000 0000 */
-    frame_header = 0x00000000;
-    frame_header_info_t header_info_3;
+    uint32_t frame_header = 0x00000000;
+    frame_header_info_t header_info;
     
-    test_3 = s_decode_frame_header_layer(frame_header, &header_info_3);
+    test_3 = s_decode_frame_header_layer(frame_header, &header_info);
 
     test_3 = !test_3; // The func returns false for non-layer 3 layers
     if (test_3)
     {
         /* layer number can be anything other than 1, 2, 3*/
-        bool test_3_bool = (header_info_3.layer != 3 ||
-                            header_info_3.layer != 2 ||
-                            header_info_3.layer != 1); 
+        bool test_3_bool = (header_info.layer != 3 ||
+                            header_info.layer != 2 ||
+                            header_info.layer != 1); 
         test_3 = (test_3_bool) ? true : false;
     }
 
-    if (!test_3)
-    {
-        printf("%s - TEST 3 FAILED\n", TEST_GROUP_NAME);
-    }
-
-
-    return (test_0 && test_1 && test_2 && test_3);
+    return test_3;
 }
 
 
-static bool s_test_decode_frame_header_bitrate(void)
+/*
+ * TEST_4
+ *
+ * Test if s_decode_frame_header returns the correct bitfield
+ *
+ */
+static bool s_test_decode_frame_header_layer_t4(void)
 {
-    return false;
+    bool test_4 = false;
+
+    /* =============== Layer 3 =============== */
+    /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
+    /* 0000 0000 0000 0000 0000 0000 0000 0000 */
+    uint32_t frame_header = 0x00000000;
+    frame_header_info_t header_info;
+    uint8_t l3_return = s_decode_frame_header(frame_header, &header_info);
+    bool l3 = (l3_return & DECODE_HEADER_ERR_LAYER) ? false : true; //result should be zero
+
+    /* Err flag will be set if layer is not 3 (if the above tests pass) */
+    /* We don't need to check every possible layers                     */
+
+    /* =============== Layer 2 =============== */
+    /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
+    /* 0000 0000 0000 0100 0000 0000 0000 0000 */
+    frame_header = 0x00040000;
+    uint8_t l2_return = s_decode_frame_header(frame_header, &header_info);
+    bool l2 = (l2_return & DECODE_HEADER_ERR_LAYER) ? true : false; //result should NOT be zero
+
+    return (l3 && l2);
 }
-
-
-static bool s_test_decode_frame_header_freq(void)
-{
-    return false;
-}
-
-
-static bool s_test_decode_frame_header(void)
-{
-    return false;
-}
-
-
 
 // /* Error log for s_decode_frame_header() */
-// #define DECODE_HEADER_ERR_SYNCWORD  0x01
 // #define DECODE_HEADER_ERR_LAYER     0x02
-// #define DECODE_HEADER_ERR_BITRATE   0x04
-// #define DECODE_HEADER_ERR_FREQ      0x08
+
 
 int main(void)
 {
-    s_test_decode_frame_header_layer();
+    int return_code = 0;
+
+    if (!s_test_decode_frame_header_layer_t0())
+    {
+        return_code &= TEST_0_FAILED;
+    }
+
+    if (!s_test_decode_frame_header_layer_t1())
+    {
+        return_code &= TEST_1_FAILED;
+    }
+
+    if (!s_test_decode_frame_header_layer_t2())
+    {
+        return_code &= TEST_2_FAILED;
+    }
+
+    if (!s_test_decode_frame_header_layer_t3())
+    {
+        return_code &= TEST_3_FAILED;
+    }
+
+    if (!s_test_decode_frame_header_layer_t4())
+    {
+        return_code &= TEST_4_FAILED;
+    }
+
+    return return_code;
 }

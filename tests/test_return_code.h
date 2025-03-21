@@ -1,0 +1,13 @@
+#ifndef TEST_RETURN_CODE_H
+#define TEST_RETURN_CODE_H
+
+#define TEST_0_FAILED 0x01
+#define TEST_1_FAILED 0x02
+#define TEST_2_FAILED 0x04
+#define TEST_3_FAILED 0x08
+#define TEST_4_FAILED 0x10
+#define TEST_5_FAILED 0x20
+#define TEST_6_FAILED 0x40
+#define TEST_7_FAILED 0x80
+
+#endif
