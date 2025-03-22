@@ -1,5 +1,5 @@
-#ifndef TEST_RETURN_CODE_H
-#define TEST_RETURN_CODE_H
+#ifndef TEST_EXIT_CODE_H
+#define TEST_EXIT_CODE_H
 
 #define TEST_0_FAILED 0x01
 #define TEST_1_FAILED 0x02
