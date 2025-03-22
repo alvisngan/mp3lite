@@ -85,6 +85,10 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
 static bool s_decode_frame_header_layer(const uint32_t frame_header, 
                                         frame_header_info_t *header_info);
 
+/*
+ * \return  if bitrate index is 0000, this function returns success
+ *          if bitrate index is 1111, this function returns failure
+ */
 static bool s_decode_frame_header_bitrate(const uint32_t frame_header,
                                           frame_header_info_t *header_info);
 
