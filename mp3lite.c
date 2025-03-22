@@ -91,7 +91,10 @@ static bool s_decode_frame_header_layer(const uint32_t frame_header,
  */
 static bool s_decode_frame_header_bitrate(const uint32_t frame_header,
                                           frame_header_info_t *header_info);
-
+/*
+ * \return  if the frequency index is 11 (i.e. reserved), this function will
+ *          return failure
+ */
 static bool s_decode_frame_header_freq(const uint32_t frame_header,
                                        frame_header_info_t *header_info);
 
