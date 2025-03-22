@@ -5,5 +5,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED 99)
 
 add_executable(test_s_decode_frame_header_layer test_s_decode_frame_header_layer.c)
-
 add_test(unit_test_s_decode_frame_header_layer test_s_decode_frame_header_layer)
+
+add_executable(test_s_decode_frame_header_bitrate test_s_decode_frame_header_bitrate.c)
+add_test(unit_test_s_decode_frame_header_bitrate test_s_decode_frame_header_bitrate)
