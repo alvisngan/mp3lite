@@ -149,6 +149,87 @@ static bool s_test_decode_frame_header_bitrate_t0(void)
 }
 
 
+/*
+ * TEST_1
+ *
+ * Testing s_decode_frame_header_bitrate return and header_info.bitrate
+ *
+ * MPEG Audio Version 1
+ * Invalid bitrates
+ */
+static bool s_test_decode_frame_header_bitrate_t1(void)
+{
+    bool test_1 = false;
+
+    /* ============= MPEG-1 free ============= */
+    /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
+    /* 0000 0000 0001 1000 0000 0000 0000 0000 */
+    uint32_t frame_header = 0x00180000;
+    frame_header_info_t header_info;
+
+    bool test_v1_free = s_decode_frame_header_bitrate(frame_header, &header_info);
+
+    /* free bitrate returns success */
+    if (test_v1_free)
+    {    
+        test_v1_free = (header_info.bitrate == 0) ? true : false;
+    }
+
+    /* =========== MPEG1 forbidden =========== */
+    /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
+    /* 0000 0000 0001 1000 1111 0000 0000 0000 */
+    frame_header = 0x0018F000;
+
+    bool test_v1_forb = s_decode_frame_header_bitrate(frame_header, &header_info);
+
+    /* forbidden bitrate returns failure */
+    test_v1_forb = !test_v1_forb;
+    if (test_v1_forb)
+    {    
+        test_v1_forb = (header_info.bitrate == 0) ? true : false;
+    }
+    printf("%d, %d\n",test_v1_free ,test_v1_forb);
+
+    test_1 = test_v1_free && test_v1_forb;
+
+    return test_1;
+}
+
+
+/*
+ * TEST_2
+ *
+ * Test if s_decode_frame_header returns the correct bitfield
+ */
+static bool s_test_decode_frame_header_bitrate_t2(void)
+{
+    bool test_2 = false;
+
+    /* =========== MPEG1 forbidden =========== */
+    /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
+    /* 0000 0000 0001 1000 1111 0000 0000 0000 */
+    uint32_t frame_header = 0x0018F000;
+    frame_header_info_t header_info;
+
+    /* s_decode_frame_header will swap endianness */
+    frame_header = s_swap_endian_u32(frame_header);
+    uint8_t forb_return = s_decode_frame_header(frame_header, &header_info);
+    bool forb = (forb_return & DECODE_HEADER_ERR_BITRATE) ? true : false;
+
+    /* ============= MPEG-1 free ============= */
+    /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
+    /* 0000 0000 0001 1000 0000 0000 0000 0000 */
+    frame_header = 0x00180000;
+    frame_header = s_swap_endian_u32(frame_header);
+    bool free_return = s_decode_frame_header(frame_header, &header_info);
+    bool free = (free_return & DECODE_HEADER_ERR_BITRATE) ? false : true; //result should be zero
+
+    test_2 = forb && free;
+
+    return test_2;
+}
+
+
 int main(void)
 {
     int exit_code = 0;
@@ -156,6 +237,21 @@ int main(void)
     if (!s_test_decode_frame_header_bitrate_t0())
     {
         exit_code |= TEST_0_FAILED;
+    }
+
+    if (!s_test_decode_frame_header_bitrate_t1())
+    {
+        exit_code |= TEST_1_FAILED;
+    }
+
+    if (!s_test_decode_frame_header_bitrate_t2())
+    {
+        exit_code |= TEST_2_FAILED;
+    }
+
+    if (exit_code)
+    {
+        printf("    EXIT_CODE: %d\n", exit_code);
     }
 
     return exit_code;
