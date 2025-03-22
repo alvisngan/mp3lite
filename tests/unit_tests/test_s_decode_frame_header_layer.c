@@ -191,7 +191,7 @@ static bool s_test_decode_frame_header_layer_t4(void)
     uint32_t frame_header = 0x00020000;
     frame_header_info_t header_info;
 
-    /* s_decode_frame_header will swap endianess */
+    /* s_decode_frame_header will swap endianness */
     frame_header = s_swap_endian_u32(frame_header);
     uint8_t layer3_return = s_decode_frame_header(frame_header, &header_info);
     bool layer3 = (layer3_return & DECODE_HEADER_ERR_LAYER) ? false : true; //result should be zero
