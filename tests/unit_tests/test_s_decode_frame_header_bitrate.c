@@ -120,7 +120,7 @@ static bool s_test_decode_frame_header_bitrate_t0(void)
     /* ============ MPEG1  48kbps ============ */
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0001 1000 0010 0000 0000 0000 */
-    frame_header = 0x00182000;
+    frame_header = 0x00183000;
     
     bool test_v1_48kbps = s_decode_frame_header_bitrate(frame_header, &header_info);
 
