@@ -42,7 +42,6 @@ static bool s_test_decode_frame_header_layer_t0(void)
      *  10  Layer 2
      *  11  Layer 1
      */
-    const char *TEST_GROUP_NAME = "DECODE FRAME HEADER LAYER";
 
     bool test_0 = false;
 
