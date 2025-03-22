@@ -179,7 +179,7 @@ static bool s_decode_frame_header_bitrate(const uint32_t frame_header,
     uint32_t bitrate_idx = (frame_header & 0x0000F000) >> 12;
     if (bitrate_idx >= 15)
     {
-        success |= false;
+        success = false;
         header_info->bitrate = 0;
     }
     else
