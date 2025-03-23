@@ -221,7 +221,7 @@ static bool s_test_decode_frame_header_bitrate_t2(void)
     /* 0000 0000 0001 1000 0000 0000 0000 0000 */
     frame_header = 0x00180000;
     frame_header = s_swap_endian_u32(frame_header);
-    bool free_return = s_decode_frame_header(frame_header, &header_info);
+    uint8_t free_return = s_decode_frame_header(frame_header, &header_info);
     bool free = (free_return & DECODE_HEADER_ERR_BITRATE) ? false : true; //result should be zero
 
     test_2 = forb && free;
