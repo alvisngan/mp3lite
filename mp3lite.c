@@ -53,9 +53,10 @@ typedef struct {
 
 /* Error log for s_decode_frame_header() */
 #define DECODE_HEADER_ERR_SYNCWORD  0x01
-#define DECODE_HEADER_ERR_LAYER     0x02
-#define DECODE_HEADER_ERR_BITRATE   0x04
-#define DECODE_HEADER_ERR_FREQ      0x08
+#define DECODE_HEADER_ERR_VERSION   0x02
+#define DECODE_HEADER_ERR_LAYER     0x04
+#define DECODE_HEADER_ERR_BITRATE   0x08
+#define DECODE_HEADER_ERR_FREQ      0x10
 
 /* 
  * \param frame_header  The frame header bitstream stored as uint32_t,
@@ -128,7 +129,7 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
         result |= DECODE_HEADER_ERR_SYNCWORD;
     }
 
-    header_info->id = (frame_header & 0x00080000) ? 1 : 0;
+    header_info->id = (frame_header & 0x00180000) ? 1 : 0;
     
     bool layer_b = s_decode_frame_header_layer(frame_header, header_info);
     result |= (layer_b) ? 0 : DECODE_HEADER_ERR_LAYER;
