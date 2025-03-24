@@ -77,8 +77,9 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
                                      frame_header_info_t *header_info);
 
 /*
- * \return  true:   MPEG version 1, 2, 2.5 (for 2.5, header_info->ver = 25)
+ * \return  true:   MPEG version 1
  *          false:  reserved (header_info->ver = 0) 
+                    2 & 2.5 (for 2.5, header_info->ver = 25)
  */
 static bool s_decode_frame_header_ver(uint32_t frame_header, 
                                       frame_header_info_t *header_info);
@@ -246,9 +247,11 @@ static bool s_decode_frame_header_freq(const uint32_t frame_header,
             break;
         case 1:
             header_info->freq = 48000;
+            success = false;
             break;
         case 2:
             header_info->freq = 32000;
+            success = false;
             break;
         default:
             header_info->freq = 0;
