@@ -61,6 +61,7 @@ typedef struct {
 /* 
  * \param frame_header  The frame header bitstream stored as uint32_t,
  *                      including the 11/12 bits syncword
+ *                      This function will swap frame_header endianness
  *
  * \param header_info   The address of the header information struct
  *
