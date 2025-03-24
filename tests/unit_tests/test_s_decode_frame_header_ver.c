@@ -83,6 +83,40 @@ static bool s_test_decode_frame_header_ver_t0(void)
 }
 
 
+/*
+ * TEST_1
+ *
+ * Test if s_decode_frame_header returns the correct bitfield
+ */
+static bool s_test_decode_frame_header_ver_t1(void)
+{
+    bool test_1;
+
+    /* ================ MPEG1 ================ */
+    /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
+    /* 0000 0000 0001 1000 0000 0000 0000 0000 */
+    uint32_t frame_header = 0x00180000;
+    frame_header_info_t header_info;
+
+    /* s_decode_frame_header will swap endianness */
+    frame_header = s_swap_endian_u32(frame_header);
+    uint8_t ver_1_return = s_decode_frame_header(frame_header, &header_info);
+    bool ver_1 = (ver_1_return & DECODE_HEADER_ERR_VERSION) ? false : true;
+
+    /* =============== reserved ============== */
+    /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
+    /* 0000 0000 0000 1000 0000 0000 0000 0000 */
+    frame_header = 0x00080000;
+    frame_header = s_swap_endian_u32(frame_header);
+    uint8_t reserv_return = s_decode_frame_header(frame_header, &header_info);
+    bool reserv = (reserv_return & DECODE_HEADER_ERR_VERSION) ? true : false;
+
+    test_1 = ver_1 && reserv;
+
+    return test_1;
+}
+
+
 int main(void)
 {
     int exit_code = 0;
@@ -92,15 +126,10 @@ int main(void)
         exit_code |= TEST_0_FAILED;
     }
 
-    // if (!s_test_decode_frame_header_t1())
-    // {
-    //     exit_code |= TEST_1_FAILED;
-    // }
-
-    // if (!s_test_decode_frame_header_t2())
-    // {
-    //     exit_code |= TEST_2_FAILED;
-    // }
+    if (!s_test_decode_frame_header_ver_t1())
+    {
+        exit_code |= TEST_1_FAILED;
+    }
 
     if (exit_code)
     {
