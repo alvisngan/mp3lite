@@ -177,9 +177,11 @@ static bool s_decode_frame_header_ver(const uint32_t frame_header,
             break;
         case 0x00100000:
             header_info->ver = 2;
+            success = false;
             break;
         case 0x00000000:
             header_info->ver = 25;
+            success = false;
             break;
         default:
             header_info->ver = 0;
@@ -247,11 +249,9 @@ static bool s_decode_frame_header_freq(const uint32_t frame_header,
             break;
         case 1:
             header_info->freq = 48000;
-            success = false;
             break;
         case 2:
             header_info->freq = 32000;
-            success = false;
             break;
         default:
             header_info->freq = 0;
