@@ -38,7 +38,7 @@ static uint32_t s_swap_endian_u32(const uint32_t val);
  * padding      The number of bytes of padding added to the frame
  */
 typedef struct {
-    uint8_t id;
+    uint8_t ver;
     uint8_t layer;
     uint8_t protection;
     uint8_t mode;
@@ -75,6 +75,13 @@ typedef struct {
  */
 static uint8_t s_decode_frame_header(uint32_t frame_header, 
                                      frame_header_info_t *header_info);
+
+/*
+ * \return  true:   MPEG version 1, 2, 2.5 (for 2.5, header_info->ver = 25)
+ *          false:  reserved (header_info->ver = 0) 
+ */
+static bool s_decode_frame_header_ver(uint32_t frame_header, 
+                                      frame_header_info_t *header_info);
 
 /*
  * This function will assign layer number to header_info, even for un-supported
@@ -129,7 +136,8 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
         result |= DECODE_HEADER_ERR_SYNCWORD;
     }
 
-    header_info->id = (frame_header & 0x00180000) ? 1 : 0;
+    bool ver_b = s_decode_frame_header_ver(frame_header, header_info);
+    result |= (ver_b) ? 0 : DECODE_HEADER_ERR_VERSION;
     
     bool layer_b = s_decode_frame_header_layer(frame_header, header_info);
     result |= (layer_b) ? 0 : DECODE_HEADER_ERR_LAYER;
@@ -150,6 +158,34 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
     header_info->emphasis = (uint8_t) (frame_header & 0x00000030);
 
     return result;
+}
+
+
+static bool s_decode_frame_header_ver(const uint32_t frame_header, 
+                                      frame_header_info_t *header_info)
+{
+    assert(header_info);
+    bool success = true;
+
+    uint32_t ver_id = (frame_header & 0x00180000);
+
+    switch (ver_id)
+    {
+        case 0x00180000:
+            header_info->ver = 1;
+            break;
+        case 0x00100000:
+            header_info->ver = 2;
+            break;
+        case 0x00000000:
+            header_info->ver = 25;
+            break;
+        default:
+            header_info->ver = 0;
+            success = false;
+    }
+
+    return success;
 }
 
 
