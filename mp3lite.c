@@ -157,7 +157,7 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
 
     header_info->mode = (uint8_t) ((frame_header & 0x000000C0) >> 6);
     header_info->mode_ext = (uint8_t) ((frame_header & 0x00000030) >> 4);
-    header_info->emphasis = (uint8_t) (frame_header & 0x00000030);
+    header_info->emphasis = (uint8_t) (frame_header & 0x00000003);
 
     return result;
 }
