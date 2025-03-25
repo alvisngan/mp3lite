@@ -231,27 +231,6 @@ static bool s_test_decode_frame_header_t4(void)
     return test_4;
 }
 
-/*
- * useful link: http://www.mp3-tech.org/programmer/frame_header.html
- *
- *       AAAAAAAA AAABBCCD EEEEFFGH IIJJKLMM 
- *       
- *          Length (bits)   Discription
- *      A   11              Syncword
- *      B   2               Version ID
- *      C   2               Layer Description
- *      D   1               Protection bit
- *      E   4               Bitrate index
- *      F   2               Sammpling rate frequency index
- *      G   1               Padding bit
- *      H   1               Private bit
- *      I   2               Channel mode index
- *      J   2               Mode extension index
- *      K   1               Copyright
- *      L   1               Original
- *      M   2               Emphasis index
- *
- */
 
 /*
  * TEST_5
@@ -262,7 +241,7 @@ static bool s_test_decode_frame_header_t4(void)
  */
 static bool s_test_decode_frame_header_t5(void)
 {
-    bool test_4 = false;
+    bool test_5 = false;
 
     uint32_t frame_header = 0xFFFB9000;
     frame_header_info_t header_info;
@@ -284,19 +263,59 @@ static bool s_test_decode_frame_header_t5(void)
         foo = foo && (header_info.mode_ext == 0);
         foo = foo && (header_info.emphasis == 0);
 
-        test_4 = foo;
+        test_5 = foo;
     }
     else 
     {
-        test_4 = false;
+        test_5 = false;
     }
 
-
-
-    return test_4;
+    return test_5;
 }
 
-///TODO: fffb18c0 he_32khz.bit frame 1
+
+/*
+ * TEST_6
+ *
+ * Testing with actual header
+ *
+ * ISO/IEC 11172-4 (MPEG-1) layer 3 he_32khz.bit frame 1
+ */
+static bool s_test_decode_frame_header_t6(void)
+{
+    bool test_6 = false;
+
+    uint32_t frame_header = 0xFFFB18C0;
+    frame_header_info_t header_info;
+
+    /* s_decode_frame_header will swap endianness */
+    frame_header = s_swap_endian_u32(frame_header);
+    uint8_t exit_code = s_decode_frame_header(frame_header, &header_info);
+
+    if (!exit_code)
+    {
+        bool foo = true;
+        foo = foo && (header_info.ver == 1);
+        foo = foo && (header_info.layer == 3);
+        foo = foo && (header_info.protection == 0);
+        foo = foo && (header_info.bitrate == 32);
+        foo = foo && (header_info.freq == 32000);
+        /* padding is not specified in the compliance doc */
+        foo = foo && (header_info.mode == 3); // mono
+        foo = foo && (header_info.mode_ext == 0);
+        foo = foo && (header_info.emphasis == 0);
+
+        test_6 = foo;
+    }
+    else 
+    {
+        test_6 = false;
+    }
+
+    return test_6;
+}
+
+
 
 int main(void)
 {
@@ -332,6 +351,10 @@ int main(void)
         exit_code |= TEST_5_FAILED;
     }
 
+    if (!s_test_decode_frame_header_t6())
+    {
+        exit_code |= TEST_6_FAILED;
+    }
     if (exit_code)
     {
         printf("    EXIT_CODE: %d\n", exit_code);
