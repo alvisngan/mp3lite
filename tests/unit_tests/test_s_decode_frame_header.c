@@ -231,6 +231,72 @@ static bool s_test_decode_frame_header_t4(void)
     return test_4;
 }
 
+/*
+ * useful link: http://www.mp3-tech.org/programmer/frame_header.html
+ *
+ *       AAAAAAAA AAABBCCD EEEEFFGH IIJJKLMM 
+ *       
+ *          Length (bits)   Discription
+ *      A   11              Syncword
+ *      B   2               Version ID
+ *      C   2               Layer Description
+ *      D   1               Protection bit
+ *      E   4               Bitrate index
+ *      F   2               Sammpling rate frequency index
+ *      G   1               Padding bit
+ *      H   1               Private bit
+ *      I   2               Channel mode index
+ *      J   2               Mode extension index
+ *      K   1               Copyright
+ *      L   1               Original
+ *      M   2               Emphasis index
+ *
+ */
+
+/*
+ * TEST_5
+ *
+ * Testing with actual header
+ *
+ * ISO/IEC 11172-4 (MPEG-1) layer 3 hecommon.bit frame 1
+ */
+static bool s_test_decode_frame_header_t5(void)
+{
+    bool test_4 = false;
+
+    uint32_t frame_header = 0xFFFB9000;
+    frame_header_info_t header_info;
+
+    /* s_decode_frame_header will swap endianness */
+    frame_header = s_swap_endian_u32(frame_header);
+    uint8_t exit_code = s_decode_frame_header(frame_header, &header_info);
+
+    if (!exit_code)
+    {
+        bool foo = true;
+        foo = foo && (header_info.ver == 1);
+        foo = foo && (header_info.layer == 3);
+        foo = foo && (header_info.protection == 0);
+        foo = foo && (header_info.bitrate == 128);
+        foo = foo && (header_info.freq == 44100);
+        /* padding is not specified in the compliance doc */
+        foo = foo && (header_info.mode == 0); // stereo
+        foo = foo && (header_info.mode_ext == 0);
+        foo = foo && (header_info.emphasis == 0);
+
+        test_4 = foo;
+    }
+    else 
+    {
+        test_4 = false;
+    }
+
+
+
+    return test_4;
+}
+
+///TODO: fffb18c0 he_32khz.bit frame 1
 
 int main(void)
 {
@@ -259,6 +325,11 @@ int main(void)
     if (!s_test_decode_frame_header_t4())
     {
         exit_code |= TEST_4_FAILED;
+    }
+
+    if (!s_test_decode_frame_header_t5())
+    {
+        exit_code |= TEST_5_FAILED;
     }
 
     if (exit_code)
