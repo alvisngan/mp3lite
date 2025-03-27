@@ -132,7 +132,7 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
     frame_header_e = s_swap_endian_u32(frame_header_e);
 #endif
 
-    /* ensure syncword is valid (first 11 bits) */
+    /* Ensure syncword is valid (first 11 bits) */
     if ((frame_header_e & 0xFFE00000u) != 0xFFE00000u)
     {
         result |= DECODE_HEADER_ERR_SYNCWORD;
@@ -144,7 +144,8 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
     bool layer_b = s_decode_frame_header_layer(frame_header_e, header_info);
     result |= (layer_b) ? 0 : DECODE_HEADER_ERR_LAYER;
     
-    header_info->protection = (frame_header_e & 0x00010000u) ? 0 : 1; // inverted
+    /* Protection bit is inverted from the official specs */
+    header_info->protection = (frame_header_e & 0x00010000u) ? 0 : 1;
 
     bool bitrate_b = s_decode_frame_header_bitrate(frame_header_e, header_info);
     result |= (bitrate_b) ? 0 : DECODE_HEADER_ERR_BITRATE;
