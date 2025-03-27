@@ -3,9 +3,42 @@
 #include <assert.h>
 #include <stdbool.h>
 
+/* Maximum number of channels (2 for MPEG-1 11172-3) */
+#define NCH_MAX 2
+
 static uint32_t s_swap_endian_u32(const uint32_t val);
+static uint16_t s_swap_endian_u16(const uint16_t val);
+
+
+static uint32_t s_swap_endian_u32(uint32_t val)
+{
+    uint8_t *val_ptr = (uint8_t *) &val;
+
+    return (((uint32_t) val_ptr[0] << 24) |
+            ((uint32_t) val_ptr[1] << 16) |
+            ((uint32_t) val_ptr[2] << 8)|
+            (uint32_t) val_ptr[3]);
+}
+
+
+static uint16_t s_swap_endian_u16(uint16_t val)
+{
+    uint8_t *val_ptr = (uint8_t *) &val;
+
+    return (((uint16_t) val_ptr[0] << 8)|
+            (uint16_t) val_ptr[1]);
+}
+
+
+/*****************************************************************************
+ *                                                                           *
+ * Typedef's and function prototypes for decoding frame header               *
+ *                                                                           *
+ *****************************************************************************/
 
 /*
+ * Members
+ * -------
  * protection   If 1, CRC protected
  *              If 0, no redundancy
  *              (Note: ISO/IEC 11172-3 has '1' if no redundancy)
@@ -108,16 +141,11 @@ static bool s_decode_frame_header_freq(const uint32_t frame_header,
                                        frame_header_info_t *header_info);
 
 
-static uint32_t s_swap_endian_u32(uint32_t val)
-{
-    uint8_t *val_ptr = (uint8_t *) &val;
-
-    return (((uint32_t) val_ptr[0] << 24) |
-            ((uint32_t) val_ptr[1] << 16) |
-            ((uint32_t) val_ptr[2] << 8)|
-            (uint32_t) val_ptr[3]);
-}
-
+/*****************************************************************************
+ *                                                                           *
+ * Source code for decoding frame header                                     *
+ *                                                                           *
+ *****************************************************************************/
 
 static uint8_t s_decode_frame_header(uint32_t frame_header, 
                                      frame_header_info_t *header_info)
@@ -264,3 +292,73 @@ static bool s_decode_frame_header_freq(const uint32_t frame_header,
 
     return success;
 }
+
+
+/*****************************************************************************
+ *                                                                           *
+ * Typedef's and function prototypes for decoding side information           *
+ *                                                                           *
+ *****************************************************************************/
+
+/*
+ * The side information for each granule (gr) and channel (ch);
+ * This is NOT the complete side information!
+ *
+ * All values will be converted to decimals with system endianness
+ *
+ * Reference: ISO/IEC 1172-3: 1993 2.4.1.7 
+ *
+ * Abbreviation
+ * ------------
+ * uimsbf:  unsigned integer, most significant bit first
+ * bslbf:   bit string, left bit first
+ */
+typedef struct {
+    uint16_t part2_3_length;
+    uint16_t big_values;
+    uint8_t global_gain;
+    uint8_t scalefac_compress;
+    uint8_t window_switching_flag;
+    uint8_t table_select[3];
+
+    /* if (window_switching_flag) */
+    uint8_t block_type;
+    uint8_t mixed_block_flag;
+    uint8_t subblock_gain[3];
+    /* else */
+    uint8_t region_count[2];
+    /* end if */
+
+    uint8_t preflag;
+    uint8_t scalefac_scale;
+    uint8_t count1table_select;
+} side_info_gr_ch_t;
+
+/*
+ * The side information for the frame
+ *
+ * All values will be converted to decimals with system endianness
+ *
+ * Reference: ISO/IEC 1172-3: 1993 2.4.1.7 
+ *
+ * Abbreviation
+ * ------------
+ * scfsi:   scalefactor selection information
+ * NCH_MAX: maximum number of channels (defined in this file)
+ * ch:      channel number, starts at 0
+ * gr:      granule number, starts at 0
+ *
+ * Members
+ * -------
+ * scfsi[idx]               idx = scfsi_band * NCH_MAX + ch
+ *
+ * side_info_gr_ch[idx]     idx = gr * NCH_MAX + ch
+ */
+typedef struct {
+    uint16_t main_data_begin;
+    uint8_t scfsi[NCH_MAX * 4];
+    side_info_gr_ch_t side_info_gr_ch[2 * NCH_MAX];
+} side_info_t;
+
+ static uint8_t s_decode_side_info(char *side_info_ptr);
+
