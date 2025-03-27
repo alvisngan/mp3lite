@@ -73,7 +73,7 @@ typedef struct {
  *                      C: invalid bitrate
  *                      D: invalid sampling frequency
  */
-static uint8_t s_decode_frame_header(uint32_t frame_header, 
+static uint8_t s_decode_frame_header(const uint32_t frame_header, 
                                      frame_header_info_t *header_info);
 
 /*
