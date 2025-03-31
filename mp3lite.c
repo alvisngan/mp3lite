@@ -134,6 +134,8 @@ static uint8_t s_decode_frame_header(const uint32_t frame_header,
                                      frame_header_info_t *header_info);
 
 /*
+ * \param frame_header  frame header in system endianness
+ *
  * \return  true:   MPEG version 1
  *          false:  reserved (header_info->ver = 0) 
                     2 & 2.5 (for 2.5, header_info->ver = 25)
@@ -145,6 +147,8 @@ static bool s_decode_frame_header_ver(uint32_t frame_header,
  * This function will assign layer number to header_info, even for un-supported
  * layer types
  *
+ * \param frame_header  frame header in system endianness
+ *
  * \return  true:   layer 3
  *          false:  all other layers
  */
@@ -152,14 +156,18 @@ static bool s_decode_frame_header_layer(const uint32_t frame_header,
                                         frame_header_info_t *header_info);
 
 /*
+ * \param frame_header  frame header in system endianness
+ *
  * \return  if bitrate index is 0000, this function returns success
  *          if bitrate index is 1111, this function returns failure
  */
 static bool s_decode_frame_header_bitrate(const uint32_t frame_header,
                                           frame_header_info_t *header_info);
 /*
- * \return  if the frequency index is 11 (i.e. reserved), this function will
- *          return failure
+ * \param frame_header  frame header in system endianness
+ *
+ * \return  if the frequency index is 11 (i.e. reserved), 
+ *          this function will return failure
  */
 static bool s_decode_frame_header_freq(const uint32_t frame_header,
                                        frame_header_info_t *header_info);
