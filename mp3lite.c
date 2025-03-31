@@ -9,6 +9,15 @@
 static uint32_t s_swap_endian_u32(const uint32_t val);
 static uint16_t s_swap_endian_u16(const uint16_t val);
 
+/*
+ * This function exist to circumvent MISRA C:2012 3rd ed, rule 21.15
+ * which restricts the use of memcpy of different types,
+ * in this case uint8_t and uint16_t
+ *
+ * \return  Bitstream stored as uint16_t in system endianness
+ *          i.e. converted to little endian unless MP3LITE_BIG_ENDIAN is defined
+ */
+static uint16_t s_copy_bitstream_u16(const uint8_t *bitstream_ptr);
 
 static uint32_t s_swap_endian_u32(uint32_t val)
 {
@@ -29,6 +38,21 @@ static uint16_t s_swap_endian_u16(uint16_t val)
             (uint16_t) val_ptr[1]);
 }
 
+
+static uint16_t s_copy_bitstream_u16(const uint8_t *bitstream_ptr)
+{
+    uint16_t val = 0;
+
+#if !defined (MP3LITE_BIG_ENDIAN)
+    val = (((uint16_t) bitstream_ptr[0] << 8)|
+           (uint16_t) bitstream_ptr[1]);
+#else
+    val = (((uint16_t) bitstream_ptr[1] << 8)|
+           (uint16_t) bitstream_ptr[0]);
+#endif
+
+    return val;
+}
 
 /*****************************************************************************
  *                                                                           *
@@ -360,5 +384,36 @@ typedef struct {
     side_info_gr_ch_t side_info_gr_ch[2 * NCH_MAX];
 } side_info_t;
 
- static uint8_t s_decode_side_info(char *side_info_ptr);
+/* Error log for s_decode_side_info() */
+#define DECODE_SIDEINFO_ERR_SYNCWORD    0x01
+#define DECODE_SIDEINFO_ERR_VERSION     0x02
+#define DECODE_SIDEINFO_ERR_LAYER       0x04
+#define DECODE_SIDEINFO_ERR_BITRATE     0x08
+#define DECODE_SIDEINFO_ERR_FREQ        0x10
 
+/*
+ * Decoding side information, where the side_info_ptr is the pointer of array
+ * containing the side_info bitstream. Since the array is stored is 8 bits
+ * integer array, there is no need to swap the endian.
+ */
+static uint8_t s_decode_side_info(uint8_t *side_info_ptr, 
+                                  side_info_t *side_info);
+
+
+/*****************************************************************************
+ *                                                                           *
+ * Source code for decoding side information                                 *
+ *                                                                           *
+ *****************************************************************************/
+
+static uint8_t s_decode_side_info(uint8_t *side_info_ptr, 
+                                  side_info_t *side_info)
+{
+    uint8_t result = 0;
+
+    /* main_data_begin */
+    uint16_t main_data_begin = s_copy_bitstream_u16(side_info_ptr);
+    side_info->main_data_begin = main_data_begin >> 7;
+
+    return result;
+}                                  
