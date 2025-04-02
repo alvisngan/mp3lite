@@ -393,7 +393,7 @@ typedef struct {
 } side_info_t;
 
 /* Error log for s_decode_side_info() */
-#define DECODE_SIDEINFO_ERR_SYNCWORD    0x01
+#define DECODE_SIDEINFO_ERR_SCFSI       0x01
 #define DECODE_SIDEINFO_ERR_VERSION     0x02
 #define DECODE_SIDEINFO_ERR_LAYER       0x04
 #define DECODE_SIDEINFO_ERR_BITRATE     0x08
@@ -403,9 +403,35 @@ typedef struct {
  * Decoding side information, where the side_info_ptr is the pointer of array
  * containing the side_info bitstream. Since the array is stored is 8 bits
  * integer array, there is no need to swap the endian.
+ *
+ * \param side_info_ptr     The first bit of the side_info MUST be aligned on
+ *                          the byte boundary
+ *
+ * \return
  */
 static uint8_t s_decode_side_info(uint8_t *side_info_ptr, 
-                                  side_info_t *side_info);
+                                  side_info_t *side_info,
+                                  const frame_header_info_t *header_info);
+
+/*
+ * Helper function for finding the current index of the scfsi array in 
+ * side_info_t struct
+ *
+ * \param scfsi_band    current scalefactor side_info band
+ *
+ * \param ch            current channel
+ */
+static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch);
+
+/*
+ * Helper function for finding the current index of the scfsi array in 
+ * side_info_t struct
+ *
+ * \param grc   current granule
+ *
+ * \param ch    current channel
+ */
+static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch);
 
 
 /*****************************************************************************
@@ -415,7 +441,8 @@ static uint8_t s_decode_side_info(uint8_t *side_info_ptr,
  *****************************************************************************/
 
 static uint8_t s_decode_side_info(uint8_t *side_info_ptr, 
-                                  side_info_t *side_info)
+                                  side_info_t *side_info,
+                                  const frame_header_info_t *header_info)
 {
     uint8_t result = 0;
 
@@ -423,5 +450,60 @@ static uint8_t s_decode_side_info(uint8_t *side_info_ptr,
     uint16_t main_data_begin = s_copy_bitstream_u16(side_info_ptr);
     side_info->main_data_begin = main_data_begin >> 7;
 
+    /* scfsi[ch][scfsi_band] */
+    uint16_t scfsi_temp = s_copy_bitstream_u16(&side_info_ptr[1]);
+    uint8_t bitshift = 0;
+    uint8_t foo = 0;
+    switch (header_info->mode) 
+    {
+        /* stereo, joint stereo, and dual channel */
+        case 0:
+        case 1:
+        case 2:
+            /* data from bit 12 to 19 (0-based ordering) */
+            scfsi_temp = (scfsi_temp & 0x0FF0u) >> 4;
+            bitshift = 7; // 8 - 1
+            for (uint8_t ch = 0; ch < 2; ++ch)
+            {
+                for (uint8_t scfsi_band = 0; scfsi_band < 4; ++scfsi_band)
+                {
+                    foo = ((scfsi_temp) >> bitshift) & 0x01u;
+                    side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] = foo;
+                    bitshift--;
+                }
+            }
+            break;
+        
+        /* single channel */
+        case 3:
+            /* data from bit 14 to 17 (0-based ordering) */
+            scfsi_temp = (scfsi_temp & 0x03C0u) >> 4;
+            bitshift = 3; // 4 - 1
+            for (uint8_t scfsi_band = 0; scfsi_band < 4; ++scfsi_band)
+            {
+                foo = ((scfsi_temp) >> bitshift) & 0x01u;
+                side_info->scfsi[s_scfsi_idx(scfsi_band, 1)] = foo; 
+                bitshift--;
+            }
+            break;
+        
+        default:
+            result |= DECODE_SIDEINFO_ERR_SCFSI;
+            break;
+    }
+    
+
     return result;
-}                                  
+}
+
+
+static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch)
+{
+    return scfsi_band * NCH_MAX + ch;
+}
+
+
+static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch)
+{
+    return gr * NCH_MAX + ch;
+}
