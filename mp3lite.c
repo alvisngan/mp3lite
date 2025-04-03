@@ -433,6 +433,9 @@ static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch);
  */
 static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch);
 
+static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr, 
+                                     side_info_t *side_info,
+                                     const frame_header_info_t *header_info);
 
 /*****************************************************************************
  *                                                                           *
@@ -450,7 +453,34 @@ static uint8_t s_decode_side_info(uint8_t *side_info_ptr,
     uint16_t main_data_begin = s_copy_bitstream_u16(side_info_ptr);
     side_info->main_data_begin = main_data_begin >> 7;
 
-    /* scfsi[ch][scfsi_band] */
+    bool scfsi_b = s_decode_side_info_scfsi(side_info_ptr, 
+                                            side_info, 
+                                            header_info);
+    result |= (scfsi_b) ? 0 : DECODE_SIDEINFO_ERR_SCFSI;                                      
+    
+
+    return result;
+}
+
+
+static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch)
+{
+    return scfsi_band * NCH_MAX + ch;
+}
+
+
+static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch)
+{
+    return gr * NCH_MAX + ch;
+}
+
+
+static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr, 
+                                     side_info_t *side_info,
+                                     const frame_header_info_t *header_info)
+{
+    bool success = false;
+
     uint16_t scfsi_temp = s_copy_bitstream_u16(&side_info_ptr[1]);
     uint8_t bitshift = 0;
     uint8_t foo = 0;
@@ -472,12 +502,13 @@ static uint8_t s_decode_side_info(uint8_t *side_info_ptr,
                     bitshift--;
                 }
             }
+            success = false;
             break;
         
         /* single channel */
         case 3:
             /* data from bit 14 to 17 (0-based ordering) */
-            scfsi_temp = (scfsi_temp & 0x03C0u) >> 4;
+            scfsi_temp = (scfsi_temp & 0x03C0u) >> 6;
             bitshift = 3; // 4 - 1
             for (uint8_t scfsi_band = 0; scfsi_band < 4; ++scfsi_band)
             {
@@ -485,25 +516,13 @@ static uint8_t s_decode_side_info(uint8_t *side_info_ptr,
                 side_info->scfsi[s_scfsi_idx(scfsi_band, 1)] = foo; 
                 bitshift--;
             }
+            success = true;
             break;
         
         default:
-            result |= DECODE_SIDEINFO_ERR_SCFSI;
+            success = false;
             break;
     }
-    
 
-    return result;
-}
-
-
-static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch)
-{
-    return scfsi_band * NCH_MAX + ch;
-}
-
-
-static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch)
-{
-    return gr * NCH_MAX + ch;
+    return success;
 }
