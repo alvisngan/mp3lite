@@ -447,9 +447,12 @@ static uint8_t s_decode_side_info(uint8_t *side_info_ptr,
                                   side_info_t *side_info,
                                   const frame_header_info_t *header_info)
 {
+    assert(side_info_ptr);
+    assert(side_info);
+    assert(header_info);
+
     uint8_t result = 0;
 
-    /* main_data_begin */
     uint16_t main_data_begin = s_copy_bitstream_u16(side_info_ptr);
     side_info->main_data_begin = main_data_begin >> 7;
 
@@ -465,12 +468,18 @@ static uint8_t s_decode_side_info(uint8_t *side_info_ptr,
 
 static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch)
 {
+    assert(scfsi_band < 4);
+    assert(ch < NCH_MAX);
+
     return (scfsi_band * NCH_MAX) + ch;
 }
 
 
 static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch)
 {
+    assert(gr < 2);
+    assert(ch < NCH_MAX);
+    
     return (gr * NCH_MAX) + ch;
 }
 
