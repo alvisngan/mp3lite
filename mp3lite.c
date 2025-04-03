@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 /* Maximum number of channels (2 for MPEG-1 11172-3) */
-#define NCH_MAX 2
+#define NCH_MAX 2u
 
 static uint32_t s_swap_endian_u32(const uint32_t val);
 static uint16_t s_swap_endian_u16(const uint16_t val);
@@ -388,8 +388,8 @@ typedef struct {
  */
 typedef struct {
     uint16_t main_data_begin;
-    uint8_t scfsi[NCH_MAX * 4];
-    side_info_gr_ch_t side_info_gr_ch[2 * NCH_MAX];
+    uint8_t scfsi[NCH_MAX * 4u];
+    side_info_gr_ch_t side_info_gr_ch[2u * NCH_MAX];
 } side_info_t;
 
 /* Error log for s_decode_side_info() */
@@ -465,13 +465,13 @@ static uint8_t s_decode_side_info(uint8_t *side_info_ptr,
 
 static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch)
 {
-    return scfsi_band * NCH_MAX + ch;
+    return (scfsi_band * NCH_MAX) + ch;
 }
 
 
 static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch)
 {
-    return gr * NCH_MAX + ch;
+    return (gr * NCH_MAX) + ch;
 }
 
 
@@ -493,11 +493,11 @@ static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr,
             /* data from bit 12 to 19 (0-based ordering) */
             scfsi_temp = (scfsi_temp & 0x0FF0u) >> 4;
             bitshift = 7; // 8 - 1
-            for (uint8_t ch = 0; ch < 2; ++ch)
+            for (uint8_t ch = 0; ch < 2u; ++ch)
             {
-                for (uint8_t scfsi_band = 0; scfsi_band < 4; ++scfsi_band)
+                for (uint8_t scfsi_band = 0; scfsi_band < 4u; ++scfsi_band)
                 {
-                    foo = ((scfsi_temp) >> bitshift) & 0x01u;
+                    foo = (uint8_t) (((scfsi_temp) >> bitshift) & 0x01u);
                     side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] = foo;
                     bitshift--;
                 }
@@ -510,9 +510,9 @@ static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr,
             /* data from bit 14 to 17 (0-based ordering) */
             scfsi_temp = (scfsi_temp & 0x03C0u) >> 6;
             bitshift = 3; // 4 - 1
-            for (uint8_t scfsi_band = 0; scfsi_band < 4; ++scfsi_band)
+            for (uint8_t scfsi_band = 0; scfsi_band < 4u; ++scfsi_band)
             {
-                foo = ((scfsi_temp) >> bitshift) & 0x01u;
+                foo = (uint8_t) (((scfsi_temp) >> bitshift) & 0x01u);
                 side_info->scfsi[s_scfsi_idx(scfsi_band, 1)] = foo; 
                 bitshift--;
             }
