@@ -384,12 +384,13 @@ typedef struct {
  * -------
  * scfsi[idx]               idx = scfsi_band * NCH_MAX + ch
  *
- * side_info_gr_ch[idx]     idx = gr * NCH_MAX + ch
+ * gr_ch[idx]               Information unique to each granule and channel
+ *                          idx = gr * NCH_MAX + ch
  */
 typedef struct {
     uint16_t main_data_begin;
     uint8_t scfsi[NCH_MAX * 4u];
-    side_info_gr_ch_t side_info_gr_ch[2u * NCH_MAX];
+    side_info_gr_ch_t gr_ch[2u * NCH_MAX];
 } side_info_t;
 
 /* Error log for s_decode_side_info() */
@@ -427,15 +428,36 @@ static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch);
  * Helper function for finding the current index of the scfsi array in 
  * side_info_t struct
  *
- * \param grc   current granule
+ * \param grc   Current granule
  *
- * \param ch    current channel
+ * \param ch    Current channel
  */
 static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch);
 
 static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr, 
                                      side_info_t *side_info,
                                      const frame_header_info_t *header_info);
+
+static bool s_decode_side_info_gr_ch(uint8_t *side_info_ptr, 
+                                     side_info_t *side_info,
+                                     const frame_header_info_t *header_info);
+
+/*
+ * Decoding side information for EACH granule and channel, This function is a
+ * helper function for s_decode_side_info_gr_ch
+ *
+ * \param gr_ch_ptr     Pointer to the start of side_info for the [gr][ch]
+ *                      must be byte-aligned
+ *
+ * \param grc           Current granule
+ *      
+ * \param ch            Current channel
+ */
+static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr, 
+                                          uint8_t gr,
+                                          uint8_t ch,
+                                          side_info_t *side_info,
+                                          const frame_header_info_t *header_info);
 
 /*****************************************************************************
  *                                                                           *
@@ -459,7 +481,7 @@ static uint8_t s_decode_side_info(uint8_t *side_info_ptr,
     bool scfsi_b = s_decode_side_info_scfsi(side_info_ptr, 
                                             side_info, 
                                             header_info);
-    result |= (scfsi_b) ? 0 : DECODE_SIDEINFO_ERR_SCFSI;                                      
+    result |= (scfsi_b) ? 0 : DECODE_SIDEINFO_ERR_SCFSI;   
     
 
     return result;
@@ -468,7 +490,7 @@ static uint8_t s_decode_side_info(uint8_t *side_info_ptr,
 
 static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch)
 {
-    assert(scfsi_band < 4);
+    assert(scfsi_band < 4u);
     assert(ch < NCH_MAX);
 
     return (scfsi_band * NCH_MAX) + ch;
@@ -477,7 +499,7 @@ static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch)
 
 static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch)
 {
-    assert(gr < 2);
+    assert(gr < 2u);
     assert(ch < NCH_MAX);
     
     return (gr * NCH_MAX) + ch;
@@ -488,6 +510,8 @@ static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr,
                                      side_info_t *side_info,
                                      const frame_header_info_t *header_info)
 {
+    assert(side_info_ptr && side_info && header_info);
+    
     bool success = false;
 
     uint16_t scfsi_temp = s_copy_bitstream_u16(&side_info_ptr[1]);
@@ -531,6 +555,68 @@ static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr,
         default:
             success = false;
             break;
+    }
+
+    return success;
+}
+
+
+static bool s_decode_side_info_gr_ch(uint8_t *side_info_ptr, 
+                                     side_info_t *side_info,
+                                     const frame_header_info_t *header_info)
+{
+    assert(side_info_ptr && side_info && header_info);
+
+    bool success = false;
+    bool success_arr[2u * NCH_MAX];
+
+    /* Finding the start pointer and bit-  */
+    /* shifting to align the byte boundary */
+    uint8_t gr_ch_ptr[8];// 59 bits for each [gr][ch]
+
+    /* 18 bits for mono, 20 bits for dual channels         */
+    /* for MPEG2/2.5, nch & pre_gr_ch_bits needs to change */
+    uint8_t nch = (header_info->mode == 3u) ? 1 : 2;
+    uint8_t pre_gr_ch_bits = (header_info->mode == 3u) ? 18 : 20;
+    uint8_t gr_ch_bitsize = 59;
+
+    /* Number of bits precede the current [gr][ch] from side_info_ptr */
+    uint8_t preceding_bits = 0;
+
+    /* The index where the first [gr][ch] bit located in side_info_ptr */
+    uint8_t idx = 0;
+
+    uint8_t bitshift = 0;
+    uint8_t i = 0;
+
+    for (uint8_t gr = 0; gr < 2u; ++gr)
+    {
+        for (uint8_t ch = 0; ch < nch; ++ch)
+        {
+            /* copying and aligning the current [gr][ch] data */
+            preceding_bits = pre_gr_ch_bits + (gr + ch) * gr_ch_bitsize;
+            idx = preceding_bits / 8u;
+            bitshift = preceding_bits % 8u;
+            assert(bitshift < 8u);
+            uint8_t foo = idx + (2u * i);
+            uint8_t bar = 8u - bitshift;
+            for (uint8_t i = 0; i < 8u; ++i)
+            {
+                gr_ch_ptr[i] = ((side_info_ptr[idx + i] << bitshift) |
+                                ((side_info_ptr[foo]) >> bar));
+            }
+
+            success_arr[i] = s_decode_side_info_gr_ch_loop(gr_ch_ptr, gr, ch, 
+                                                           side_info, 
+                                                           header_info);
+            i++;
+        }
+    }
+
+    success = true;
+    for (uint8_t j = 0; j < (2u * nch); ++j)
+    {
+        success = success && success_arr[j];
     }
 
     return success;
