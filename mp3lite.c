@@ -635,7 +635,7 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
 
     /* Bit structure before the if (window_switching_flag) statement */
     /* |     0     |     1     |     2     |     3     |     4     | */
-    /* | AAAA AAAA | AAAA XXXX | XXXX XAAA | AAAA AXXX | XA-- ---- | */
+    /* | AAAA AAAA | AAAA BBBB | BBBB BCCC | CCCC CDDD | DE-- ---- | */
 
     uint16_t foo = s_copy_bitstream_u16(gr_ch_ptr);
     cur_gr_ch->part2_3_length = foo >> 4;
@@ -656,7 +656,7 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
     if (win_flag == 1u)
     {
         /* |     4     |     5     |     6     | */
-        /* | --BB CBBB | BBCC CCCB | BBCC CBBB | */
+        /* | --FF GHHH | HHII IIIJ | JJKK KLLL | */
 
         cur_gr_ch->block_type = (gr_ch_ptr[4] & 0x30u) >> 4;
         cur_gr_ch->mixed_block_flag = (gr_ch_ptr[4] & 0x08u) >> 3;
@@ -678,7 +678,7 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
     else
     {
         /* |     4     |     5     |     6     | */
-        /* | --BB BBBC | CCCC BBBB | BCCC CBBB | */ 
+        /* | --FF FFFG | GGGG HHHH | HIII IJJJ | */ 
         
         /* Unused */
         cur_gr_ch->block_type = 0xFFu;
@@ -698,7 +698,7 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
     }
 
     /* |     7     | */
-    /* | ABC- ---- | */
+    /* | MNO- ---- | */
     cur_gr_ch->preflag = (gr_ch_ptr[7] & 0x80u) >> 7;
     cur_gr_ch->scalefac_scale = (gr_ch_ptr[7] & 0x40u) >> 6;
     cur_gr_ch->count1table_select = (gr_ch_ptr[7] & 0x20u) >> 5;
