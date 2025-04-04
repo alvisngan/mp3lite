@@ -395,10 +395,6 @@ typedef struct {
 
 /* Error log for s_decode_side_info() */
 #define DECODE_SIDEINFO_ERR_SCFSI       0x01
-#define DECODE_SIDEINFO_ERR_VERSION     0x02
-#define DECODE_SIDEINFO_ERR_LAYER       0x04
-#define DECODE_SIDEINFO_ERR_BITRATE     0x08
-#define DECODE_SIDEINFO_ERR_FREQ        0x10
 
 /*
  * Decoding side information, where the side_info_ptr is the pointer of array
@@ -591,7 +587,6 @@ static bool s_decode_side_info_gr_ch(uint8_t *side_info_ptr,
         for (uint8_t ch = 0; ch < nch; ++ch)
         {
             /* Copying and aligning the current [gr][ch] data */
-            
             preceding_bits = pre_gr_ch_bits + (gr + ch) * gr_ch_bitsize;
             idx = preceding_bits / 8u;
             bitshift = preceding_bits % 8u;
