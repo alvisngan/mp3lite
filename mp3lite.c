@@ -697,5 +697,12 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
         cur_gr_ch->region_count[1] = gr_ch_ptr[6] & 0x07u;
     }
 
+    /* |     7     | */
+    /* | ABC- ---- | */
+    cur_gr_ch->preflag = (gr_ch_ptr[7] & 0x80u) >> 7;
+    cur_gr_ch->scalefac_scale = (gr_ch_ptr[7] & 0x40u) >> 6;
+    cur_gr_ch->count1table_select = (gr_ch_ptr[7] & 0x20u) >> 5;
+
+    success = true;
     return success;
 }
