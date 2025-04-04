@@ -631,30 +631,71 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
     assert(gr_ch_ptr && side_info && header_info);
     
     bool sucess = false;
+    side_info_gr_ch_t *cur_gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr, ch)]);
 
     /* Bit structure before the if (window_switching_flag) statement */
     /* |     0     |     1     |     2     |     3     |     4     | */
     /* | AAAA AAAA | AAAA XXXX | XXXX XAAA | AAAA AXXX | XA-- ---- | */
 
-    /* part2_3_length */
-    uint16_t part2_3_length = s_copy_bitstream_u16(gr_ch_ptr);
-    side_info->gr_ch->part2_3_length = part2_3_length >> 4;
+    uint16_t foo = s_copy_bitstream_u16(gr_ch_ptr);
+    cur_gr_ch->part2_3_length = foo >> 4;
 
-    /* big_values */
-    uint16_t big_values = s_copy_bitstream_u16(&gr_ch_ptr[1]);
-    side_info->gr_ch->big_values = (big_values & 0x0FF8u) >> 3;
+    foo = s_copy_bitstream_u16(&gr_ch_ptr[1]);
+    cur_gr_ch->big_values = (foo & 0x0FF8u) >> 3;
 
-    /* global_gain */
-    uint16_t glob_gain_u16 = s_copy_bitstream_u16(&gr_ch_ptr[2]);
-    side_info->gr_ch->global_gain = (uint8_t) ((glob_gain_u16 & 0x7F80u) >> 7);
+    foo = s_copy_bitstream_u16(&gr_ch_ptr[2]);
+    cur_gr_ch->global_gain = (uint8_t) ((foo & 0x7F80u) >> 7);
 
-    /* scalefac_compress */
-    uint8_t scf_cmp = s_copy_bitstream_u16(&gr_ch_ptr[3]);
-    side_info->gr_ch->scalefac_compress = (uint8_t) ((scf_cmp & 0x07C0u) >> 7);
+    foo = s_copy_bitstream_u16(&gr_ch_ptr[3]);
+    cur_gr_ch->scalefac_compress = (uint8_t) ((foo & 0x07C0u) >> 7);
 
-    /* window_switching_flag */
-    uint8_t win_flag = (gr_ch_ptr[4] & 0x40) >> 6;
-    side_info->gr_ch->window_switching_flag = win_flag;
+    uint8_t win_flag = (gr_ch_ptr[4] & 0x40u) >> 6;
+    cur_gr_ch->window_switching_flag = win_flag;
+
+    /* Assign unused array element as all bits set */
+    if (win_flag == 1u)
+    {
+        /* |     4     |     5     |     6     | */
+        /* | --BB CBBB | BBCC CCCB | BBCC CBBB | */
+
+        cur_gr_ch->block_type = (gr_ch_ptr[4] & 0x30u) >> 4;
+        cur_gr_ch->mixed_block_flag = (gr_ch_ptr[4] & 0x08u) >> 3;
+
+        foo = s_copy_bitstream_u16(&gr_ch_ptr[4]);
+        cur_gr_ch->table_select[0] = (uint8_t) ((foo & 0x07C0u) >> 6);
+        cur_gr_ch->table_select[1] = (gr_ch_ptr[5] & 0x3Eu) >> 1;
+        cur_gr_ch->table_select[2] = 0xFF; // Unused
+
+        foo = s_copy_bitstream_u16(&gr_ch_ptr[5]);
+        cur_gr_ch->subblock_gain[0] = (uint8_t) ((foo & 0x01C0u) >> 6);
+        cur_gr_ch->subblock_gain[1] = (uint8_t) ((gr_ch_ptr[6] & 0x38u) >> 3);
+        cur_gr_ch->subblock_gain[2] = (uint8_t) (gr_ch_ptr[6] & 0x07u);
+
+        /* Unused */
+        cur_gr_ch->region_count[0] = 0xFFu;
+        cur_gr_ch->region_count[1] = 0xFFu;
+    }
+    else
+    {
+        /* |     4     |     5     |     6     | */
+        /* | --BB BBBC | CCCC BBBB | BCCC CBBB | */ 
+        
+        /* Unused */
+        cur_gr_ch->block_type = 0xFFu;
+        cur_gr_ch->mixed_block_flag = 0xFFu;
+        cur_gr_ch->subblock_gain[1] = 0xFFu;
+        cur_gr_ch->subblock_gain[0] = 0xFFu;
+        cur_gr_ch->subblock_gain[2] = 0xFFu;
+
+        cur_gr_ch->table_select[0] = (gr_ch_ptr[4] & 0x3Eu) >> 1;
+        foo = s_copy_bitstream_u16(&gr_ch_ptr[4]);
+        cur_gr_ch->table_select[1] = (uint8_t) ((foo & 0x01F0u) >> 4);
+        foo = s_copy_bitstream_u16(&gr_ch_ptr[5]);
+        cur_gr_ch->table_select[2] = (uint8_t) ((foo & 0x0F80u) >> 7);
+
+        cur_gr_ch->region_count[0] = (gr_ch_ptr[6] & 0x78u) >> 3;
+        cur_gr_ch->region_count[1] = gr_ch_ptr[6] & 0x07u;
+    }
 
     return sucess;
 }
