@@ -121,7 +121,7 @@ typedef struct {
  *
  * \param header_info   The address of the header information struct
  *
- * \return              0: sucess
+ * \return              0: success
  *                      
  *                      The error log is stored in a one byte bitfield
  *                      err_log = 0b0000DCBA
@@ -630,7 +630,7 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
 {
     assert(gr_ch_ptr && side_info && header_info);
     
-    bool sucess = false;
+    bool success = false;
     side_info_gr_ch_t *cur_gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr, ch)]);
 
     /* Bit structure before the if (window_switching_flag) statement */
@@ -697,5 +697,5 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
         cur_gr_ch->region_count[1] = gr_ch_ptr[6] & 0x07u;
     }
 
-    return sucess;
+    return success;
 }
