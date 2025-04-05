@@ -338,6 +338,8 @@ static bool s_decode_frame_header_freq(const uint32_t frame_header,
  *
  * All values will be converted to decimals with system endianness
  *
+ * Unused array element are assigned as all bits set
+ *
  * Reference: ISO/IEC 1172-3: 1993 2.4.1.7 
  *
  * Abbreviation
@@ -454,6 +456,16 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
                                           uint8_t ch,
                                           side_info_t *side_info,
                                           const frame_header_info_t *header_info);
+
+/*
+ * Helper function for s_decode_side_info_gr_ch_loop, decodes information inside
+ * the if (window_switching_flag) statement
+ *
+ * \param cur_gr_ch     Pointer to current [gr][ch] side_info_gr_ch_t struct
+ */
+static void s_decode_side_info_gr_ch_win_sw_flag(uint8_t *gr_ch_ptr,
+                                                 uint8_t window_switching_flag,
+                                                 side_info_gr_ch_t *cur_gr_ch);
 
 /*****************************************************************************
  *                                                                           *
@@ -647,8 +659,28 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
     uint8_t win_flag = (gr_ch_ptr[4] & 0x40u) >> 6;
     cur_gr_ch->window_switching_flag = win_flag;
 
+    s_decode_side_info_gr_ch_win_sw_flag(gr_ch_ptr, win_flag, cur_gr_ch);
+
+    /* |     7     | */
+    /* | MNO- ---- | */
+    cur_gr_ch->preflag = (gr_ch_ptr[7] & 0x80u) >> 7;
+    cur_gr_ch->scalefac_scale = (gr_ch_ptr[7] & 0x40u) >> 6;
+    cur_gr_ch->count1table_select = (gr_ch_ptr[7] & 0x20u) >> 5;
+
+    /// TODO: currently there is no error detection
+    success = true;
+    return success;
+}
+
+
+static void s_decode_side_info_gr_ch_win_sw_flag(uint8_t *gr_ch_ptr,
+                                                 uint8_t window_switching_flag,
+                                                 side_info_gr_ch_t *cur_gr_ch)
+{
+    uint16_t foo = 0;
+    
     /* Assign unused array element as all bits set */
-    if (win_flag == 1u)
+    if (window_switching_flag == 1u)
     {
         /* |     4     |     5     |     6     | */
         /* | --FF GHHH | HHII IIIJ | JJKK KLLL | */
@@ -691,13 +723,4 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
         cur_gr_ch->region_count[0] = (gr_ch_ptr[6] & 0x78u) >> 3;
         cur_gr_ch->region_count[1] = gr_ch_ptr[6] & 0x07u;
     }
-
-    /* |     7     | */
-    /* | MNO- ---- | */
-    cur_gr_ch->preflag = (gr_ch_ptr[7] & 0x80u) >> 7;
-    cur_gr_ch->scalefac_scale = (gr_ch_ptr[7] & 0x40u) >> 6;
-    cur_gr_ch->count1table_select = (gr_ch_ptr[7] & 0x20u) >> 5;
-
-    success = true;
-    return success;
 }
