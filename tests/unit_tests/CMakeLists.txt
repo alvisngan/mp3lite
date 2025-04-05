@@ -18,3 +18,6 @@ add_test(unit_test_s_decode_frame_header_ver test_s_decode_frame_header_ver)
 
 add_executable(test_s_decode_frame_header test_s_decode_frame_header.c)
 add_test(unit_test_s_decode_frame_header test_s_decode_frame_header)
+
+add_executable(test_s_decode_side_info test_s_decode_side_info.c)
+add_test(unit_test_s_decode_side_info test_s_decode_side_info)
