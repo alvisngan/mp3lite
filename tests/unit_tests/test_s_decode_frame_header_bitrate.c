@@ -48,7 +48,7 @@ static bool s_test_decode_frame_header_bitrate_t0(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0001 1000 1101 0000 0000 0000 */
     uint32_t frame_header = 0x0018E000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
     
     bool test_v1_320kbps = s_decode_frame_header_bitrate(frame_header, &header_info);
 
@@ -165,7 +165,7 @@ static bool s_test_decode_frame_header_bitrate_t1(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0001 1000 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00180000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
 
     bool test_v1_free = s_decode_frame_header_bitrate(frame_header, &header_info);
 
@@ -209,7 +209,7 @@ static bool s_test_decode_frame_header_bitrate_t2(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0001 1000 1111 0000 0000 0000 */
     uint32_t frame_header = 0x0018F000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
 
     /* s_decode_frame_header will swap endianness */
     frame_header = s_swap_endian_u32(frame_header);

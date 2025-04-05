@@ -103,7 +103,7 @@ typedef struct {
     uint16_t bitrate;
     uint16_t freq;
     uint16_t padding;
-} frame_header_info_t;
+} header_info_t;
 
 
 
@@ -131,7 +131,7 @@ typedef struct {
  *                      D: invalid sampling frequency
  */
 static uint8_t s_decode_frame_header(const uint32_t frame_header, 
-                                     frame_header_info_t *header_info);
+                                     header_info_t *header_info);
 
 /*
  * \param frame_header  frame header in system endianness
@@ -141,7 +141,7 @@ static uint8_t s_decode_frame_header(const uint32_t frame_header,
                     2 & 2.5 (for 2.5, header_info->ver = 25)
  */
 static bool s_decode_frame_header_ver(uint32_t frame_header, 
-                                      frame_header_info_t *header_info);
+                                      header_info_t *header_info);
 
 /*
  * This function will assign layer number to header_info, even for un-supported
@@ -153,7 +153,7 @@ static bool s_decode_frame_header_ver(uint32_t frame_header,
  *          false:  all other layers
  */
 static bool s_decode_frame_header_layer(const uint32_t frame_header, 
-                                        frame_header_info_t *header_info);
+                                        header_info_t *header_info);
 
 /*
  * \param frame_header  frame header in system endianness
@@ -162,7 +162,7 @@ static bool s_decode_frame_header_layer(const uint32_t frame_header,
  *          if bitrate index is 1111, this function returns failure
  */
 static bool s_decode_frame_header_bitrate(const uint32_t frame_header,
-                                          frame_header_info_t *header_info);
+                                          header_info_t *header_info);
 /*
  * \param frame_header  frame header in system endianness
  *
@@ -170,7 +170,7 @@ static bool s_decode_frame_header_bitrate(const uint32_t frame_header,
  *          this function will return failure
  */
 static bool s_decode_frame_header_freq(const uint32_t frame_header,
-                                       frame_header_info_t *header_info);
+                                       header_info_t *header_info);
 
 
 /*****************************************************************************
@@ -180,7 +180,7 @@ static bool s_decode_frame_header_freq(const uint32_t frame_header,
  *****************************************************************************/
 
 static uint8_t s_decode_frame_header(uint32_t frame_header, 
-                                     frame_header_info_t *header_info)
+                                     header_info_t *header_info)
 {
     assert(header_info);
 
@@ -225,7 +225,7 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
 
 
 static bool s_decode_frame_header_ver(const uint32_t frame_header, 
-                                      frame_header_info_t *header_info)
+                                      header_info_t *header_info)
 {
     assert(header_info);
     bool success = true;
@@ -256,7 +256,7 @@ static bool s_decode_frame_header_ver(const uint32_t frame_header,
 
 
 static bool s_decode_frame_header_layer(const uint32_t frame_header, 
-                                        frame_header_info_t *header_info)
+                                        header_info_t *header_info)
 {
     assert(header_info);
     bool success = true;
@@ -277,7 +277,7 @@ static bool s_decode_frame_header_layer(const uint32_t frame_header,
 
 
 static bool s_decode_frame_header_bitrate(const uint32_t frame_header,
-                                          frame_header_info_t *header_info)
+                                          header_info_t *header_info)
 {
     assert(header_info);
     bool success = true;
@@ -299,7 +299,7 @@ static bool s_decode_frame_header_bitrate(const uint32_t frame_header,
 
 
 static bool s_decode_frame_header_freq(const uint32_t frame_header,
-                                       frame_header_info_t *header_info)
+                                       header_info_t *header_info)
 {
     assert(header_info);
     bool success = true;
@@ -410,7 +410,7 @@ typedef struct {
  */
 static uint8_t s_decode_side_info(uint8_t *side_info_ptr, 
                                   side_info_t *side_info,
-                                  const frame_header_info_t *header_info);
+                                  const header_info_t *header_info);
 
 /*
  * Helper function for finding the current index of the scfsi array in 
@@ -434,11 +434,11 @@ static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch);
 
 static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr, 
                                      side_info_t *side_info,
-                                     const frame_header_info_t *header_info);
+                                     const header_info_t *header_info);
 
 static bool s_decode_side_info_gr_ch(uint8_t *side_info_ptr, 
                                      side_info_t *side_info,
-                                     const frame_header_info_t *header_info);
+                                     const header_info_t *header_info);
 
 /*
  * Decoding side information for EACH granule and channel, This function is a
@@ -455,7 +455,7 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
                                           uint8_t gr,
                                           uint8_t ch,
                                           side_info_t *side_info,
-                                          const frame_header_info_t *header_info);
+                                          const header_info_t *header_info);
 
 /*
  * Helper function for s_decode_side_info_gr_ch_loop, decodes information inside
@@ -475,7 +475,7 @@ static void s_decode_side_info_gr_ch_win_sw_flag(uint8_t *gr_ch_ptr,
 
 static uint8_t s_decode_side_info(uint8_t *side_info_ptr, 
                                   side_info_t *side_info,
-                                  const frame_header_info_t *header_info)
+                                  const header_info_t *header_info)
 {
     assert(side_info_ptr);
     assert(side_info);
@@ -516,7 +516,7 @@ static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch)
 
 static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr, 
                                      side_info_t *side_info,
-                                     const frame_header_info_t *header_info)
+                                     const header_info_t *header_info)
 {
     assert(side_info_ptr && side_info && header_info);
     
@@ -571,7 +571,7 @@ static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr,
 
 static bool s_decode_side_info_gr_ch(uint8_t *side_info_ptr, 
                                      side_info_t *side_info,
-                                     const frame_header_info_t *header_info)
+                                     const header_info_t *header_info)
 {
     assert(side_info_ptr && side_info && header_info);
 
@@ -633,7 +633,7 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
                                           uint8_t gr,
                                           uint8_t ch,
                                           side_info_t *side_info,
-                                          const frame_header_info_t *header_info)
+                                          const header_info_t *header_info)
 {
     assert(gr_ch_ptr && side_info && header_info);
     

@@ -55,7 +55,7 @@ static bool s_test_decode_frame_header_t0(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 1111 1111 1110 0000 0000 0000 0000 0000 */
     uint32_t frame_header = 0xFFE00000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
 
     /* s_decode_frame_header will swap endianness */
     frame_header = s_swap_endian_u32(frame_header);
@@ -99,7 +99,7 @@ static bool s_test_decode_frame_header_t1(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0000 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00000000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
 
     /* s_decode_frame_header will swap endianness */
     frame_header = s_swap_endian_u32(frame_header);
@@ -135,7 +135,7 @@ static bool s_test_decode_frame_header_t2(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0000 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00000000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
 
     /* s_decode_frame_header will swap endianness */
     frame_header = s_swap_endian_u32(frame_header);
@@ -192,7 +192,7 @@ static bool s_test_decode_frame_header_t3(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0000 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00000020;
-    frame_header_info_t header_info;
+    header_info_t header_info;
     
     /* s_decode_frame_header will swap endianness */
     frame_header = s_swap_endian_u32(frame_header);
@@ -219,7 +219,7 @@ static bool s_test_decode_frame_header_t4(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0000 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00000002;
-    frame_header_info_t header_info;
+    header_info_t header_info;
     
     /* s_decode_frame_header will swap endianness */
     frame_header = s_swap_endian_u32(frame_header);
@@ -244,7 +244,7 @@ static bool s_test_decode_frame_header_t5(void)
     bool test_5 = false;
 
     uint32_t frame_header = 0xFFFB9000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
 
     /* s_decode_frame_header will swap endianness */
     frame_header = s_swap_endian_u32(frame_header);
@@ -286,7 +286,7 @@ static bool s_test_decode_frame_header_t6(void)
     bool test_6 = false;
 
     uint32_t frame_header = 0xFFFB18C0;
-    frame_header_info_t header_info;
+    header_info_t header_info;
 
     /* s_decode_frame_header will swap endianness */
     frame_header = s_swap_endian_u32(frame_header);

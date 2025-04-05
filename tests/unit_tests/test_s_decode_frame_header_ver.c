@@ -37,7 +37,7 @@ static bool s_test_decode_frame_header_ver_t0(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0001 1000 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00180000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
     bool ver_1 = s_decode_frame_header_ver(frame_header, &header_info);
     if (ver_1)
     {
@@ -96,7 +96,7 @@ static bool s_test_decode_frame_header_ver_t1(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0001 1000 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00180000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
 
     /* s_decode_frame_header will swap endianness */
     frame_header = s_swap_endian_u32(frame_header);

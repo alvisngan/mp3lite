@@ -39,7 +39,7 @@ static bool s_test_decode_frame_header_freq_t0(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0001 1000 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00180000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
     
     bool test_v1_44khz = s_decode_frame_header_freq(frame_header, &header_info);
 
@@ -94,7 +94,7 @@ static bool s_test_decode_frame_header_freq_t1(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0001 1000 0000 1100 0000 0000 */
     uint32_t frame_header = 0x00180C00;
-    frame_header_info_t header_info;
+    header_info_t header_info;
     
     bool test_v1_reserv = s_decode_frame_header_freq(frame_header, &header_info);
 
@@ -124,7 +124,7 @@ static bool s_test_decode_frame_header_freq_t2(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0001 1000 0000 0100 0000 0000 */
     uint32_t frame_header = 0x00180400;
-    frame_header_info_t header_info;
+    header_info_t header_info;
 
     /* s_decode_frame_header will swap endianness */
     frame_header = s_swap_endian_u32(frame_header);

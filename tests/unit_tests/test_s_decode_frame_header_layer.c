@@ -48,7 +48,7 @@ static bool s_test_decode_frame_header_layer_t0(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0110 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00060000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
     
     test_0 = s_decode_frame_header_layer(frame_header, &header_info);
 
@@ -84,7 +84,7 @@ static bool s_test_decode_frame_header_layer_t1(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0100 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00040000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
     
     test_1 = s_decode_frame_header_layer(frame_header, &header_info);
 
@@ -121,7 +121,7 @@ static bool s_test_decode_frame_header_layer_t2(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0010 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00020000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
     
     test_2 = s_decode_frame_header_layer(frame_header, &header_info);
 
@@ -157,7 +157,7 @@ static bool s_test_decode_frame_header_layer_t2(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0000 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00000000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
     
     test_3 = s_decode_frame_header_layer(frame_header, &header_info);
 
@@ -189,7 +189,7 @@ static bool s_test_decode_frame_header_layer_t4(void)
     /* AAAA AAAA AAAB BCCD EEEE FFGH IIJJ KLMM */
     /* 0000 0000 0000 0010 0000 0000 0000 0000 */
     uint32_t frame_header = 0x00020000;
-    frame_header_info_t header_info;
+    header_info_t header_info;
 
     /* s_decode_frame_header will swap endianness */
     frame_header = s_swap_endian_u32(frame_header);
