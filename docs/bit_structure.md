@@ -102,3 +102,71 @@ if (!window_switching_flag) block
     W   5               region0_count[0]
     V   3               region1_count[0]
 ```
+
+### Dual Channel
+```
+Total Length = 32 bytes
+
+          0           1           2           3           4           5
+    | AAAA AAAA | ABBB CCCC | CCCC DDDD | DDDD DDDD | EEEE EEEE | EFFF FFFF |
+
+          6           7           8           9           10          11
+    | FGGG GH-- | ---- ---- | ---- ---- | ---- IJKL | LLLL LLLL | LLLM MMMM |
+
+          12          13          14          15          16          17
+    | MMMM NNNN | NNNN OOOO | P--- ---- | ---- ---- | ---- ---Q | RSTT TTTT |
+
+          18          19          20          21          22          23
+    | TTTT TTUU | UUUU UUUV | VVVV VVVW | WWWX ---- | ---- ---- | ---- ---- |
+
+          24          25          26          27          28          29
+    | --YZ abbb | bbbb bbbb | bccc cccc | ccdd dddd | ddee eef- | ---- ---- |
+
+          30          31     
+    | ---- ---- | ---- -ghi |
+
+        Length (bits)   Discription
+    A   9               main_data_begin
+    B   3               private_bit
+    C   8               scfsi[ch][scfsi_band] (ch ∈ [0, 1]; scfsi_band ∈ [0, 3])
+            gr = 0  ch = 0
+    D   12              part2_3_length[0][0]
+    E   9               big_values[0][0]
+    F   8               global_gain[0][0]
+    G   4               scalefac_compress[0][0]
+    H   1               window_switching_flag
+    -   22              if (window_switching_flag) block
+    I   1               preflag[0][0]
+    J   1               scalefac_scale[0][0]
+    K   1               count1table_select[0][0]
+            gr = 0  ch = 1
+    L   12              part2_3_length[0][1]
+    M   9               big_values[0][1]
+    N   8               global_gain[0][1]
+    O   4               scalefac_compress[0][1]
+    P   1               window_switching_flag
+    -   22              if (window_switching_flag) block
+    Q   1               preflag[0][1]
+    R   1               scalefac_scale[0][1]
+    S   1               count1table_select[0][1]
+            gr = 1  ch = 0
+    T   12              part2_3_length[1][0]
+    U   9               big_values[1][0]
+    V   8               global_gain[1][0]
+    W   4               scalefac_compress[1][0]
+    X   1               window_switching_flag
+    -   22              if (window_switching_flag) block
+    Y   1               preflag[1][0]
+    Z   1               scalefac_scale[1][0]
+    a   1               count1table_select[1][0]
+            gr = 1  ch = 1
+    b   12              part2_3_length[1][1]
+    c   9               big_values[1][1]
+    d   8               global_gain[1][1]
+    e   4               scalefac_compress[1][1]
+    f   1               window_switching_flag
+    -   22              if (window_switching_flag) block
+    g   1               preflag[1][1]
+    h   1               scalefac_scale[1][1]
+    i   1               count1table_select[1][1]
+```
