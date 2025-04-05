@@ -408,7 +408,7 @@ typedef struct {
  *
  * \return
  */
-static uint8_t s_decode_side_info(uint8_t *side_info_ptr, 
+static uint8_t s_decode_side_info(const uint8_t *side_info_ptr, 
                                   side_info_t *side_info,
                                   const header_info_t *header_info);
 
@@ -420,7 +420,7 @@ static uint8_t s_decode_side_info(uint8_t *side_info_ptr,
  *
  * \param ch            current channel
  */
-static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch);
+static uint8_t s_scfsi_idx(const uint8_t scfsi_band, const uint8_t ch);
 
 /*
  * Helper function for finding the current index of the scfsi array in 
@@ -430,13 +430,13 @@ static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch);
  *
  * \param ch    Current channel
  */
-static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch);
+static uint8_t s_gr_ch_idx(const uint8_t gr, const uint8_t ch);
 
-static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr, 
+static bool s_decode_side_info_scfsi(const uint8_t *side_info_ptr, 
                                      side_info_t *side_info,
                                      const header_info_t *header_info);
 
-static bool s_decode_side_info_gr_ch(uint8_t *side_info_ptr, 
+static bool s_decode_side_info_gr_ch(const uint8_t *side_info_ptr, 
                                      side_info_t *side_info,
                                      const header_info_t *header_info);
 
@@ -451,9 +451,9 @@ static bool s_decode_side_info_gr_ch(uint8_t *side_info_ptr,
  *      
  * \param ch            Current channel
  */
-static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr, 
-                                          uint8_t gr,
-                                          uint8_t ch,
+static bool s_decode_side_info_gr_ch_loop(const uint8_t *gr_ch_ptr, 
+                                          const uint8_t gr,
+                                          const uint8_t ch,
                                           side_info_t *side_info,
                                           const header_info_t *header_info);
 
@@ -463,8 +463,8 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
  *
  * \param cur_gr_ch     Pointer to current [gr][ch] side_info_gr_ch_t struct
  */
-static void s_decode_side_info_gr_ch_win_sw_flag(uint8_t *gr_ch_ptr,
-                                                 uint8_t window_switching_flag,
+static void s_decode_side_info_gr_ch_win_sw_flag(const uint8_t *gr_ch_ptr,
+                                                 const uint8_t win_sw_flag,
                                                  side_info_gr_ch_t *cur_gr_ch);
 
 /*****************************************************************************
@@ -473,7 +473,7 @@ static void s_decode_side_info_gr_ch_win_sw_flag(uint8_t *gr_ch_ptr,
  *                                                                           *
  *****************************************************************************/
 
-static uint8_t s_decode_side_info(uint8_t *side_info_ptr, 
+static uint8_t s_decode_side_info(const uint8_t *side_info_ptr, 
                                   side_info_t *side_info,
                                   const header_info_t *header_info)
 {
@@ -496,7 +496,7 @@ static uint8_t s_decode_side_info(uint8_t *side_info_ptr,
 }
 
 
-static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch)
+static uint8_t s_scfsi_idx(const uint8_t scfsi_band, const uint8_t ch)
 {
     assert(scfsi_band < 4u);
     assert(ch < NCH_MAX);
@@ -505,7 +505,7 @@ static uint8_t s_scfsi_idx(uint8_t scfsi_band, uint8_t ch)
 }
 
 
-static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch)
+static uint8_t s_gr_ch_idx(const uint8_t gr, const uint8_t ch)
 {
     assert(gr < 2u);
     assert(ch < NCH_MAX);
@@ -514,7 +514,7 @@ static uint8_t s_gr_ch_idx(uint8_t gr, uint8_t ch)
 }
 
 
-static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr, 
+static bool s_decode_side_info_scfsi(const uint8_t *side_info_ptr, 
                                      side_info_t *side_info,
                                      const header_info_t *header_info)
 {
@@ -569,7 +569,7 @@ static bool s_decode_side_info_scfsi(uint8_t *side_info_ptr,
 }
 
 
-static bool s_decode_side_info_gr_ch(uint8_t *side_info_ptr, 
+static bool s_decode_side_info_gr_ch(const uint8_t *side_info_ptr, 
                                      side_info_t *side_info,
                                      const header_info_t *header_info)
 {
@@ -629,9 +629,9 @@ static bool s_decode_side_info_gr_ch(uint8_t *side_info_ptr,
 }
 
 
-static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr, 
-                                          uint8_t gr,
-                                          uint8_t ch,
+static bool s_decode_side_info_gr_ch_loop(const uint8_t *gr_ch_ptr, 
+                                          const uint8_t gr,
+                                          const uint8_t ch,
                                           side_info_t *side_info,
                                           const header_info_t *header_info)
 {
@@ -673,14 +673,14 @@ static bool s_decode_side_info_gr_ch_loop(uint8_t *gr_ch_ptr,
 }
 
 
-static void s_decode_side_info_gr_ch_win_sw_flag(uint8_t *gr_ch_ptr,
-                                                 uint8_t window_switching_flag,
+static void s_decode_side_info_gr_ch_win_sw_flag(const uint8_t *gr_ch_ptr,
+                                                 const uint8_t win_sw_flag,
                                                  side_info_gr_ch_t *cur_gr_ch)
 {
     uint16_t foo = 0;
     
     /* Assign unused array element as all bits set */
-    if (window_switching_flag == 1u)
+    if (win_sw_flag == 1u)
     {
         /* |     4     |     5     |     6     | */
         /* | --FF GHHH | HHII IIIJ | JJKK KLLL | */
