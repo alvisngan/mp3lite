@@ -91,15 +91,15 @@ if (!window_switching_flag) block
     | ---- ZZZZ | ZYYY YYXX | XXXW WWWV | VV-- ---- | 
 
           13          14          15          16     
-    | ---- ---U | UUUU TTTT | TSSS SSON | NNMM M--- |
+    | ---- ---U | UUUU TTTT | TSSS SSRR | RRQQ Q--- |
 
 
         Length (bits)   Discription
             gr = 0
-    Z   2               table_select[0][region=0]
-    Y   1               table_select[0][region=1]
+    Z   5               table_select[0][region=0]
+    Y   5               table_select[0][region=1]
     X   5               table_select[0][region=2]
-    W   5               region0_count[0]
+    W   4               region0_count[0]
     V   3               region1_count[0]
 ```
 
@@ -169,4 +169,54 @@ Total Length = 32 bytes
     g   1               preflag[1][1]
     h   1               scalefac_scale[1][1]
     i   1               count1table_select[1][1]
+
+
+if (window_switching_flag) block
+
+          6           7           8           9      
+    | ---- --zz | yxxx xxww | wwwv vvuu | uttt ---- | 
+
+          14          15          16        
+    | -ssr qqqq | qppp ppoo | onnn mmm- |
+
+          21          22          23          24
+    | ---- llkj | jjjj iiii | ihhh gggf | ff-- ---- |
+
+          28          29          30          31     
+    | ---- ---e | edcc cccb | bbbb aaaZ | ZZYY Y--- |
+
+
+        Length (bits)   Discription
+            gr = 0
+    z   2               block_type[0]
+    y   1               mixed_block_flag[0]
+    x   5               table_select[0][region=0]
+    w   5               table_select[0][region=1]
+    v   3               subblock_gain[0][window=0]
+    u   3               subblock_gain[0][window=1]
+    t   3               subblock_gain[0][window=2]
+
+
+if (!window_switching_flag) block
+
+          6           7           8           9      
+    | ---- --zz | zzzy yyyy | xxxx xwww | wvvv ---- | 
+
+          14          15          16        
+    | -uuu uutt | ttts ssss | rrrr qqq- |
+
+          21          22          23          24
+    | ---- pppp | pooo oonn | nnnm mmml | ll-- ---- |
+
+          28          29          30          31     
+    | ---- ---h | hhhh gggg | gfff ffee | eedd d--- |
+
+
+        Length (bits)   Discription
+            gr = 0
+    z   5               table_select[0][region=0]
+    y   5               table_select[0][region=1]
+    x   5               table_select[0][region=2]
+    w   4               region0_count[0]
+    v   3   
 ```
