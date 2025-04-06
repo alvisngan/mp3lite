@@ -187,14 +187,14 @@ if (window_switching_flag) block
 
 
         Length (bits)   Discription
-            gr = 0
-    z   2               block_type[0]
-    y   1               mixed_block_flag[0]
-    x   5               table_select[0][region=0]
-    w   5               table_select[0][region=1]
-    v   3               subblock_gain[0][window=0]
-    u   3               subblock_gain[0][window=1]
-    t   3               subblock_gain[0][window=2]
+            gr = 0  ch = 0
+    z   2               block_type[0][0]
+    y   1               mixed_block_flag[0][0]
+    x   5               table_select[0][0][region=0]
+    w   5               table_select[0][0][region=1]
+    v   3               subblock_gain[0][0][window=0]
+    u   3               subblock_gain[0][0][window=1]
+    t   3               subblock_gain[0][0][window=2]
 
 
 if (!window_switching_flag) block
@@ -213,10 +213,10 @@ if (!window_switching_flag) block
 
 
         Length (bits)   Discription
-            gr = 0
-    z   5               table_select[0][region=0]
-    y   5               table_select[0][region=1]
-    x   5               table_select[0][region=2]
-    w   4               region0_count[0]
-    v   3   
+            gr = 0  ch = 0
+    z   5               table_select[0][0][region=0]
+    y   5               table_select[0][0][region=1]
+    x   5               table_select[0][0][region=2]
+    w   4               region0_count[0][0]
+    v   3               region1_count[0][0]
 ```
