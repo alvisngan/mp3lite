@@ -586,15 +586,15 @@ static bool s_decode_side_info_gr_ch(const uint8_t *side_info_ptr,
     /* gr_ch_ptr to be aligned the byte boundary */
     uint8_t gr_ch_ptr[8];// 59 bits for each [gr][ch]
 
-    /* 18 bits for mono, 20 bits for dual channels         */
-    /* for MPEG2/2.5, nch & pre_gr_ch_bits needs to change */
-    uint8_t nch = (header_info->mode == 3u) ? 1 : 2;
-    uint8_t pre_gr_ch_bits = (header_info->mode == 3u) ? 18 : 20;
-    uint8_t gr_ch_bitsize = 59;
+    /* data precede [gr][ch]: 18 bits for mono, 20 bits for dual channels */
+    /* for MPEG2/2.5, nch & pre_gr_ch_bits needs to change                */
+    const uint8_t nch = (header_info->mode == 3u) ? 1 : 2;
+    const uint8_t pre_gr_ch_bits = (header_info->mode == 3u) ? 18 : 20;
+    const uint8_t gr_ch_bitsize = 59;
 
-    /* Number of bits precede the current [gr][ch] starting at side_info_ptr */
+    /* Initiate variables outside the loop */
+    /* Number of bits precede the current [gr][ch] from side_info_ptr */
     uint8_t preceding_bits = 0;
-    /* The index where the first [gr][ch] bit located in side_info_ptr */
     uint8_t idx = 0;
     uint8_t bitshift = 0;
     uint8_t i = 0;
@@ -605,17 +605,17 @@ static bool s_decode_side_info_gr_ch(const uint8_t *side_info_ptr,
         {
             /* Copying and aligning the current [gr][ch] data */
             preceding_bits = pre_gr_ch_bits + (gr + ch) * gr_ch_bitsize;
+            /* Index of the current [gr][ch] in side_info_ptr */
             idx = preceding_bits / 8u;
             bitshift = preceding_bits % 8u;
-            assert(bitshift < 8u);
-            uint8_t foo = idx + (2u * i);
-            uint8_t bar = 8u - bitshift;
+
             for (uint8_t i = 0; i < 8u; ++i)
             {   
                 /* Each gr_ch_ptr element are scatter into two adjacent bytes */
                 /* e.g. 0bXXXXXABC|0bDEFGHXXX ==> 0bABCDEFGH   (bitshift = 5) */
-                gr_ch_ptr[i] = ((side_info_ptr[idx + i] << bitshift) |
-                                ((side_info_ptr[foo]) >> bar));
+                gr_ch_ptr[i] = ((side_info_ptr[idx] << bitshift) |
+                                ((side_info_ptr[idx + 1u]) >> (8u - bitshift)));
+                idx++;
             }
             success_arr[i] = s_decode_side_info_gr_ch_loop(gr_ch_ptr, gr, ch, 
                                                            side_info, 
