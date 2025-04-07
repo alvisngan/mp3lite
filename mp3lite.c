@@ -6,6 +6,13 @@
 /* Maximum number of channels (2 for MPEG-1 11172-3) */
 #define NCH_MAX 2u
 
+
+/*****************************************************************************
+ *                                                                           *
+ * Function prototypes for generic helper functions                          *
+ *                                                                           *
+ *****************************************************************************/
+
 static uint32_t s_swap_endian_u32(const uint32_t val);
 static uint16_t s_swap_endian_u16(const uint16_t val);
 
@@ -18,6 +25,35 @@ static uint16_t s_swap_endian_u16(const uint16_t val);
  *          i.e. converted to little endian unless MP3LITE_BIG_ENDIAN is defined
  */
 static uint16_t s_copy_bitstream_u16(const uint8_t *bitstream_ptr);
+
+/*
+ * Example:
+ *      bitshift = 2 (bits)
+ *      len = 2 (bytes)
+ *      dest:
+ *          | AAAA AAAA | BBBB BBBB |
+ *      src:
+ *          | --AA AAAA | AABB BBBB | BB-- ---- |
+ *
+ * \param dest      Pointer to the destination array, the array should
+ *                  have `len` bytes allocated
+ *
+ * \param src       Pointer to the source array, the array should have 
+ *                  `len` + 1 bytes allocated
+ *
+ * \param bitshift  Number of bits to be shifted to the left, 
+ *                  less than 8, in bits
+ *
+ * \param len       Length of the bits to be shifted, in bytes
+ */
+static void s_align_array(uint8_t *dest, const uint8_t *src, 
+                          const uint32_t bitshift, const uint32_t len);
+
+/*****************************************************************************
+ *                                                                           *
+ * Source code for generic helper functions                                  *
+ *                                                                           *
+ *****************************************************************************/
 
 static uint32_t s_swap_endian_u32(uint32_t val)
 {
@@ -53,6 +89,22 @@ static uint16_t s_copy_bitstream_u16(const uint8_t *bitstream_ptr)
 
     return val;
 }
+
+
+static void s_align_array(uint8_t *dest, const uint8_t *src, 
+                          const uint32_t bitshift, const uint32_t len)
+{
+    assert(dest && src);
+    assert(bitshift < 8u);
+
+    for (uint8_t i = 0; i < 8u; ++i)
+    {   
+        /* Each gr_ch_ptr element are scatter into two adjacent bytes */
+        /* e.g. 0bXXXXXABC|0bDEFGHXXX ==> 0bABCDEFGH   (bitshift = 5) */
+        dest[i] = ((src[i] << bitshift) | ((src[i + 1u]) >> (8u - bitshift)));
+    }
+}
+
 
 /*****************************************************************************
  *                                                                           *
@@ -609,11 +661,11 @@ static bool s_decode_side_info_gr_ch(const uint8_t *side_info_ptr,
             idx = preceding_bits / 8u;
             bitshift = preceding_bits % 8u;
 
-            for (uint8_t i = 0; i < 8u; ++i)
+            for (uint8_t j = 0; j < 8u; ++j)
             {   
                 /* Each gr_ch_ptr element are scatter into two adjacent bytes */
                 /* e.g. 0bXXXXXABC|0bDEFGHXXX ==> 0bABCDEFGH   (bitshift = 5) */
-                gr_ch_ptr[i] = ((side_info_ptr[idx] << bitshift) |
+                gr_ch_ptr[j] = ((side_info_ptr[idx] << bitshift) |
                                 ((side_info_ptr[idx + 1u]) >> (8u - bitshift)));
                 idx++;
             }
