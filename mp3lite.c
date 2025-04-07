@@ -37,9 +37,11 @@ static uint16_t s_copy_bitstream_u16(const uint8_t *bitstream_ptr);
  *
  * \param dest      Pointer to the destination array, the array should
  *                  have `len` bytes allocated
+ *                  dest and src MUST not alias
  *
  * \param src       Pointer to the source array, the array should have 
  *                  `len` + 1 bytes allocated
+ *                  dest and src MUST not alias
  *
  * \param bitshift  Number of bits to be shifted to the left, 
  *                  less than 8, in bits
@@ -95,9 +97,10 @@ static void s_align_array(uint8_t *dest, const uint8_t *src,
                           const uint32_t bitshift, const uint32_t len)
 {
     assert(dest && src);
+    assert(dest != src);
     assert(bitshift < 8u);
 
-    for (uint8_t i = 0; i < 8u; ++i)
+    for (uint8_t i = 0; i < len; ++i)
     {   
         /* Each gr_ch_ptr element are scatter into two adjacent bytes */
         /* e.g. 0bXXXXXABC|0bDEFGHXXX ==> 0bABCDEFGH   (bitshift = 5) */
