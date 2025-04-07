@@ -710,7 +710,7 @@ static bool s_decode_side_info_gr_ch_loop(const uint8_t *gr_ch_ptr,
     cur_gr_ch->global_gain = (uint8_t) ((foo & 0x07F8u) >> 3);
 
     foo = s_copy_bitstream_u16(&gr_ch_ptr[3]);
-    cur_gr_ch->scalefac_compress = (uint8_t) ((foo & 0x07C0u) >> 7);
+    cur_gr_ch->scalefac_compress = (uint8_t) ((foo & 0x0780u) >> 7);
 
     uint8_t win_flag = (gr_ch_ptr[4] & 0x40u) >> 6;
     cur_gr_ch->window_switching_flag = win_flag;
