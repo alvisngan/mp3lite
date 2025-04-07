@@ -636,16 +636,16 @@ static bool s_decode_side_info_gr_ch(const uint8_t *side_info_ptr,
     bool success_arr[2u * NCH_MAX];
 
     /* gr_ch_ptr to be aligned the byte boundary */
-    uint8_t gr_ch_ptr[8];// 59 bits for each [gr][ch]
+    uint8_t gr_ch_ptr[8];// 59 bits for each [gr][ch]; gr_ch_len = 8
 
     /* data precede [gr][ch]: 18 bits for mono, 20 bits for dual channels */
     /* for MPEG2/2.5, nch & pre_gr_ch_bits needs to change                */
     const uint8_t nch = (header_info->mode == 3u) ? 1 : 2;
     const uint8_t pre_gr_ch_bits = (header_info->mode == 3u) ? 18 : 20;
     const uint8_t gr_ch_bitsize = 59;
+    const uint8_t gr_ch_len = 8; /* in bytes */
 
     /* Initiate variables outside the loop */
-    /* Number of bits precede the current [gr][ch] from side_info_ptr */
     uint8_t preceding_bits = 0;
     uint8_t idx = 0;
     uint8_t bitshift = 0;
@@ -655,20 +655,16 @@ static bool s_decode_side_info_gr_ch(const uint8_t *side_info_ptr,
     {
         for (uint8_t ch = 0; ch < nch; ++ch)
         {
-            /* Copying and aligning the current [gr][ch] data */
+            /* Number of bits precede the current [gr][ch] from side_info_ptr */
             preceding_bits = pre_gr_ch_bits + (gr + ch) * gr_ch_bitsize;
+
             /* Index of the current [gr][ch] in side_info_ptr */
             idx = preceding_bits / 8u;
             bitshift = preceding_bits % 8u;
 
-            for (uint8_t j = 0; j < 8u; ++j)
-            {   
-                /* Each gr_ch_ptr element are scatter into two adjacent bytes */
-                /* e.g. 0bXXXXXABC|0bDEFGHXXX ==> 0bABCDEFGH   (bitshift = 5) */
-                gr_ch_ptr[j] = ((side_info_ptr[idx] << bitshift) |
-                                ((side_info_ptr[idx + 1u]) >> (8u - bitshift)));
-                idx++;
-            }
+            s_align_array(gr_ch_ptr, &side_info_ptr[idx], bitshift, gr_ch_len);
+
+            /* Decoding [gr][ch] */
             success_arr[i] = s_decode_side_info_gr_ch_loop(gr_ch_ptr, gr, ch, 
                                                            side_info, 
                                                            header_info);
