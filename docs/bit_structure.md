@@ -1,3 +1,11 @@
+## Frame
+The header, ironically, does not necessarily reside ahead of the main data. It along with the side information can split the main data into two pieces, in the ISO/IEC specification they are called granules.
+```
+
+      | main_data[0] | header | crc | side_info | main_data[1] |
+
+```
+
 ## Header
 
 useful link: http://www.mp3-tech.org/programmer/frame_header.html
@@ -25,6 +33,8 @@ Total Length = 4 bytes
 ```
 
 ## Side Information
+The bit structure for the side information is a bit more complicated than the header. The size of the side information depends on the number of channels, where single channel frames have 17 bytes and dual channel frames have 32 bytes of side information. To further the complication, the bit struction also depends on whether a flag (1 bit) is set inside the side information.
+
 ### Single Channel (Mono)
 ```
 Total Length = 17 bytes
@@ -124,6 +134,7 @@ Total Length = 32 bytes
 
           30          31     
     | ---- ---- | ---- -ghi |
+
 
         Length (bits)   Discription
     A   9               main_data_begin
