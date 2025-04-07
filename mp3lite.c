@@ -698,7 +698,7 @@ static bool s_decode_side_info_gr_ch_loop(const uint8_t *gr_ch_ptr,
 
     /* Bit structure before the if (window_switching_flag) statement */
     /* |     0     |     1     |     2     |     3     |     4     | */
-    /* | AAAA AAAA | AAAA BBBB | BBBB BCCC | CCCC CDDD | DE-- ---- | */
+    /* | DDDD DDDD | DDDD EEEE | EEEE EFFF | FFFF FGGG | GH-- ---- | */
 
     uint16_t foo = s_copy_bitstream_u16(gr_ch_ptr);
     cur_gr_ch->part2_3_length = foo >> 4;
@@ -707,7 +707,7 @@ static bool s_decode_side_info_gr_ch_loop(const uint8_t *gr_ch_ptr,
     cur_gr_ch->big_values = (foo & 0x0FF8u) >> 3;
 
     foo = s_copy_bitstream_u16(&gr_ch_ptr[2]);
-    cur_gr_ch->global_gain = (uint8_t) ((foo & 0x7F80u) >> 7);
+    cur_gr_ch->global_gain = (uint8_t) ((foo & 0x07F8u) >> 3);
 
     foo = s_copy_bitstream_u16(&gr_ch_ptr[3]);
     cur_gr_ch->scalefac_compress = (uint8_t) ((foo & 0x07C0u) >> 7);
@@ -718,7 +718,7 @@ static bool s_decode_side_info_gr_ch_loop(const uint8_t *gr_ch_ptr,
     s_decode_side_info_gr_ch_win_sw_flag(gr_ch_ptr, win_flag, cur_gr_ch);
 
     /* |     7     | */
-    /* | MNO- ---- | */
+    /* | IJK- ---- | */
     cur_gr_ch->preflag = (gr_ch_ptr[7] & 0x80u) >> 7;
     cur_gr_ch->scalefac_scale = (gr_ch_ptr[7] & 0x40u) >> 6;
     cur_gr_ch->count1table_select = (gr_ch_ptr[7] & 0x20u) >> 5;
@@ -739,7 +739,7 @@ static void s_decode_side_info_gr_ch_win_sw_flag(const uint8_t *gr_ch_ptr,
     if (win_sw_flag == 1u)
     {
         /* |     4     |     5     |     6     | */
-        /* | --FF GHHH | HHII IIIJ | JJKK KLLL | */
+        /* | --ZZ YXXX | XXWW WWWV | VVUU UTTT | */
 
         cur_gr_ch->block_type = (gr_ch_ptr[4] & 0x30u) >> 4;
         cur_gr_ch->mixed_block_flag = (gr_ch_ptr[4] & 0x08u) >> 3;
@@ -761,7 +761,7 @@ static void s_decode_side_info_gr_ch_win_sw_flag(const uint8_t *gr_ch_ptr,
     else
     {
         /* |     4     |     5     |     6     | */
-        /* | --FF FFFG | GGGG HHHH | HIII IJJJ | */ 
+        /* | --ZZ ZZZY | YYYY XXXX | XWWW WVVV | */ 
         
         /* Unused */
         cur_gr_ch->block_type = 0xFFu;
