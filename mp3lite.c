@@ -397,6 +397,7 @@ typedef struct {
 
 /* Error log for s_decode_side_info() */
 #define DECODE_SIDEINFO_ERR_SCFSI       0x01
+#define DECODE_SIDEINFO_ERR_GR_CH       0x02
 
 /*
  * Decoding side information, where the side_info_ptr is the pointer of array
@@ -416,9 +417,9 @@ static uint8_t s_decode_side_info(const uint8_t *side_info_ptr,
  * Helper function for finding the current index of the scfsi array in 
  * side_info_t struct
  *
- * \param scfsi_band    current scalefactor side_info band
+ * \param scfsi_band    current scalefactor side_info band, starts at 0
  *
- * \param ch            current channel
+ * \param ch            current channel, starts at 0
  */
 static uint8_t s_scfsi_idx(const uint8_t scfsi_band, const uint8_t ch);
 
@@ -426,9 +427,9 @@ static uint8_t s_scfsi_idx(const uint8_t scfsi_band, const uint8_t ch);
  * Helper function for finding the current index of the scfsi array in 
  * side_info_t struct
  *
- * \param grc   Current granule
+ * \param grc   Current granule, starts at 0
  *
- * \param ch    Current channel
+ * \param ch    Current channel, starts at 0
  */
 static uint8_t s_gr_ch_idx(const uint8_t gr, const uint8_t ch);
 
@@ -491,6 +492,10 @@ static uint8_t s_decode_side_info(const uint8_t *side_info_ptr,
                                             header_info);
     result |= (scfsi_b) ? 0 : DECODE_SIDEINFO_ERR_SCFSI;   
     
+    bool gr_ch_b = s_decode_side_info_gr_ch(side_info_ptr, 
+                                            side_info, 
+                                            header_info);
+    result |= (gr_ch_b) ? 0 : DECODE_SIDEINFO_ERR_GR_CH;
 
     return result;
 }
@@ -554,7 +559,7 @@ static bool s_decode_side_info_scfsi(const uint8_t *side_info_ptr,
             for (uint8_t scfsi_band = 0; scfsi_band < 4u; ++scfsi_band)
             {
                 foo = (uint8_t) (((scfsi_temp) >> bitshift) & 0x01u);
-                side_info->scfsi[s_scfsi_idx(scfsi_band, 1)] = foo; 
+                side_info->scfsi[s_scfsi_idx(scfsi_band, 0)] = foo; 
                 bitshift--;
             }
             success = true;
