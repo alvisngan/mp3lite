@@ -418,6 +418,11 @@ static uint32_t s_frame_comp_len(header_info_t *header_info)
  * ------------
  * uimsbf:  unsigned integer, most significant bit first
  * bslbf:   bit string, left bit first
+ *
+ * Members
+ * -------
+ * part2_3_length   Number of BITS used for scalefactors and Huffman code data
+ *
  */
 typedef struct {
     uint16_t part2_3_length;
@@ -539,6 +544,12 @@ static bool s_decode_side_info_gr_ch_loop(const uint8_t *gr_ch_ptr,
 static void s_decode_side_info_gr_ch_win_sw_flag(const uint8_t *gr_ch_ptr,
                                                  const uint8_t win_sw_flag,
                                                  side_info_gr_ch_t *cur_gr_ch);
+
+/*
+ * Calculate the byte offset of the second granule from main_data_begin
+ */
+static uint32_t s_next_granule_pos(const side_info_t *side_info,
+                                   const header_info_t *header_info);
 
 /*****************************************************************************
  *                                                                           *
@@ -802,3 +813,26 @@ static void s_decode_side_info_gr_ch_win_sw_flag(const uint8_t *gr_ch_ptr,
         cur_gr_ch->region_count[1] = gr_ch_ptr[6] & 0x07u;
     }
 }
+
+
+static uint32_t s_next_granule_pos(const side_info_t *side_info,
+                                   const header_info_t *header_info)
+{
+    ///TODO: Verify (Why do we need part2_3_length accroding to page 25???)
+    assert(side_info && header_info);
+    
+    /* for MPEG2/2.5 side_info_len needs to change */
+    const uint32_t header_len = 4u;
+    const uint32_t crc_len = (header_info->protection) ? 2 : 0;
+    const uint8_t side_info_len = (header_info->mode == 3u) ? 17u : 32u;
+    
+    return ((uint32_t) (side_info->main_data_begin) + 
+            header_len + crc_len + side_info_len);
+}
+
+
+/*****************************************************************************
+ *                                                                           *
+ * Typedef's and function prototypes for decoding scale factors              *
+ *                                                                           *
+ *****************************************************************************/
