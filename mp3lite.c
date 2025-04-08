@@ -836,3 +836,14 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
  * Typedef's and function prototypes for decoding scale factors              *
  *                                                                           *
  *****************************************************************************/
+
+ /* The index for slen1 and slen2 is scalefac_compress[gr][ch] */
+static uint8_t s_slen1[16] = {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4};
+static uint8_t s_slen2[16] = {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3};
+
+
+/*****************************************************************************
+ *                                                                           *
+ * Source code for decoding scale factors                                   *
+ *                                                                           *
+ *****************************************************************************/
