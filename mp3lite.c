@@ -774,8 +774,10 @@ static void s_decode_side_info_gr_ch_win_sw_flag(const uint8_t *gr_ch_ptr,
         /* |     4     |     5     |     6     | */
         /* | --ZZ YXXX | XXWW WWWV | VVUU UTTT | */
 
-        cur_gr_ch->block_type = (gr_ch_ptr[4] & 0x30u) >> 4;
-        cur_gr_ch->mixed_block_flag = (gr_ch_ptr[4] & 0x08u) >> 3;
+        uint8_t block_type = (gr_ch_ptr[4] & 0x30u) >> 4; 
+        uint8_t mixed_block_flag = (gr_ch_ptr[4] & 0x08u) >> 3;
+        cur_gr_ch->block_type = block_type;
+        cur_gr_ch->mixed_block_flag = mixed_block_flag;
 
         foo = s_copy_bitstream_u16(&gr_ch_ptr[4]);
         cur_gr_ch->table_select[0] = (uint8_t) ((foo & 0x07C0u) >> 6);
@@ -787,17 +789,21 @@ static void s_decode_side_info_gr_ch_win_sw_flag(const uint8_t *gr_ch_ptr,
         cur_gr_ch->subblock_gain[1] = (uint8_t) ((gr_ch_ptr[6] & 0x38u) >> 3);
         cur_gr_ch->subblock_gain[2] = (uint8_t) (gr_ch_ptr[6] & 0x07u);
 
-        /* Unused */
-        cur_gr_ch->region_count[0] = 0xFFu;
-        cur_gr_ch->region_count[1] = 0xFFu;
+        /* Default region_count if window_switching_flag is set */
+        bool region0_b = ((block_type == 1u) || (block_type == 3u) ||
+                          ((block_type == 2u) && (mixed_block_flag == 1u)));
+        cur_gr_ch->region_count[0] = (region0_b) ? 7 : 8;
+        cur_gr_ch->region_count[1] = 36;
     }
     else
     {
         /* |     4     |     5     |     6     | */
         /* | --ZZ ZZZY | YYYY XXXX | XWWW WVVV | */ 
         
+        /* Default */
+        cur_gr_ch->block_type = 0;
+        
         /* Unused */
-        cur_gr_ch->block_type = 0xFFu;
         cur_gr_ch->mixed_block_flag = 0xFFu;
         cur_gr_ch->subblock_gain[1] = 0xFFu;
         cur_gr_ch->subblock_gain[0] = 0xFFu;
