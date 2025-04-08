@@ -280,7 +280,7 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
     result |= (freq_b) ? 0 : DECODE_HEADER_ERR_FREQ;
 
     /* padding is 1 byte for layer 2/3, and 4 bytes for layer 1 (unsupported)*/
-    header_info->padding = (uint16_t) ((frame_header_e & 0x00000200) >> 9);
+    header_info->padding = (uint16_t) ((frame_header_e & 0x00000200u) >> 9);
     header_info->mode = (uint8_t) ((frame_header_e & 0x000000C0u) >> 6);
     header_info->mode_ext = (uint8_t) ((frame_header_e & 0x00000030u) >> 4);
     header_info->emphasis = (uint8_t) (frame_header_e & 0x00000003u);
@@ -393,7 +393,7 @@ static bool s_decode_frame_header_freq(const uint32_t frame_header,
 
 static uint32_t s_frame_comp_len(header_info_t *header_info)
 {
-    return (FRAME_SIZE * header_info->bitrate / header_info->freq +
+    return ((FRAME_SIZE * header_info->bitrate / header_info->freq) +
             header_info->padding);
 }
 
