@@ -661,8 +661,10 @@ static bool s_decode_side_info_gr_ch(const uint8_t *side_info_ptr,
         for (uint8_t ch = 0; ch < nch; ++ch)
         {
             /* Number of bits precede the current [gr][ch] from side_info_ptr */
+            /* preceding_bits = pre_gr_ch_bits + (gr + ch) * gr_ch_bitsize*/
             preceding_bits = ((uint32_t) pre_gr_ch_bits + 
-                              (uint32_t) ((gr + ch) * gr_ch_bitsize));
+                              (((uint32_t) gr + (uint32_t) ch) * 
+                              (uint32_t) gr_ch_bitsize));
 
             /* Index of the current [gr][ch] in side_info_ptr */
             idx = preceding_bits / 8u;
