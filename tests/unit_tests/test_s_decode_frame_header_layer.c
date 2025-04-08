@@ -207,7 +207,9 @@ static bool s_test_decode_frame_header_layer_t4(void)
     uint8_t layer2_return = s_decode_frame_header(frame_header, &header_info);
     bool layer2 = (layer2_return & DECODE_HEADER_ERR_LAYER) ? true : false; //result should NOT be zero
 
-    return (layer3 && layer2);
+    test_4 = (layer3 && layer2);
+
+    return test_4;
 }
 
 
