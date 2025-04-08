@@ -560,8 +560,9 @@ static uint8_t s_scfsi_idx(const uint8_t scfsi_band, const uint8_t ch)
 {
     assert(scfsi_band < 4u);
     assert(ch < NCH_MAX);
-
-    return (scfsi_band * NCH_MAX) + ch;
+    
+    /* type casting to suppress complier warning */
+    return (uint8_t) ((scfsi_band * NCH_MAX) + ch); 
 }
 
 
@@ -570,7 +571,8 @@ static uint8_t s_gr_ch_idx(const uint8_t gr, const uint8_t ch)
     assert(gr < 2u);
     assert(ch < NCH_MAX);
     
-    return (gr * NCH_MAX) + ch;
+    /* type casting to suppress complier warning */
+    return (uint8_t) ((gr * NCH_MAX) + ch);
 }
 
 
@@ -639,18 +641,18 @@ static bool s_decode_side_info_gr_ch(const uint8_t *side_info_ptr,
     bool success_arr[2u * NCH_MAX];
 
     /* gr_ch_ptr to be aligned the byte boundary */
-    uint8_t gr_ch_ptr[8];// 59 bits for each [gr][ch]; gr_ch_len = 8
+    uint8_t gr_ch_ptr[8u];// 59 bits for each [gr][ch]; gr_ch_len = 8
 
     /* data precede [gr][ch]: 18 bits for mono, 20 bits for dual channels */
     /* for MPEG2/2.5, nch & pre_gr_ch_bits needs to change                */
-    const uint8_t nch = (header_info->mode == 3u) ? 1 : 2;
-    const uint8_t pre_gr_ch_bits = (header_info->mode == 3u) ? 18 : 20;
-    const uint8_t gr_ch_bitsize = 59;
-    const uint8_t gr_ch_len = 8; /* in bytes */
+    const uint8_t nch = (header_info->mode == 3u) ? 1u : 2u;
+    const uint8_t pre_gr_ch_bits = (header_info->mode == 3u) ? 18u : 20u;
+    const uint8_t gr_ch_bitsize = 59u;
+    const uint8_t gr_ch_len = 8u; /* in bytes */
 
     /* Initiate variables outside the loop */
-    uint8_t preceding_bits = 0;
-    uint8_t idx = 0;
+    uint32_t preceding_bits = 0;
+    uint32_t idx = 0;
     uint8_t bitshift = 0;
     uint8_t i = 0;
 
@@ -659,11 +661,12 @@ static bool s_decode_side_info_gr_ch(const uint8_t *side_info_ptr,
         for (uint8_t ch = 0; ch < nch; ++ch)
         {
             /* Number of bits precede the current [gr][ch] from side_info_ptr */
-            preceding_bits = pre_gr_ch_bits + (gr + ch) * gr_ch_bitsize;
+            preceding_bits = ((uint32_t) pre_gr_ch_bits + 
+                              (uint32_t) ((gr + ch) * gr_ch_bitsize));
 
             /* Index of the current [gr][ch] in side_info_ptr */
             idx = preceding_bits / 8u;
-            bitshift = preceding_bits % 8u;
+            bitshift = (uint8_t) preceding_bits % 8u;
 
             s_align_array(gr_ch_ptr, &side_info_ptr[idx], bitshift, gr_ch_len);
 
