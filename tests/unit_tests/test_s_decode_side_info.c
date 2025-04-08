@@ -59,8 +59,41 @@ static bool s_test_decode_side_info_t0(void)
 }
 
 
-/* si.bit frame 43: mono, 17B, global_gain = 200, scalefactor = 0 */
+/*
+* TEST_1
+*
+* Testing mono, global_gain
+*/
+static bool s_test_decode_side_info_t1(void)
+{
+    bool test_1 = false;
+    printf("\n\n____________TEST_1_______________\n\n");
 
+    /* si.bit frame 43: mono, 17B, global_gain = 200, scalefactor = 0 */
+    uint32_t si_bit_f43_header = 0xfffb52c0;
+    si_bit_f43_header = s_swap_endian_u32(si_bit_f43_header);
+    const uint8_t si_bit_f1[17] = {
+        0xff, 0x80, 0x00, 0x1c, 0x01,
+        0x90, 0x00, 0x00, 0x00, 0x00,
+        0x03, 0x80, 0x32, 0x00, 0x00,
+        0x00, 0x00
+    };
+
+    side_info_t side_info;
+    header_info_t header_info;
+    (void) s_decode_frame_header(si_bit_f43_header, &header_info);
+    uint8_t f43 = s_decode_side_info(si_bit_f1, &side_info, &header_info);
+    bool f43_b = false;
+    if (!f43)
+    {
+        f43_b = (side_info.gr_ch[0].global_gain == 200 &&
+                 side_info.gr_ch[s_gr_ch_idx(1, 0)].global_gain == 200) ? 
+                 true : false;
+    }
+    test_1 = f43_b;
+
+    return test_1;
+}
 
 /* si.bit frame 64: mono, 17B */
 /* GR0: scalefactors: slen1 = 0 slen2 = 1 */
@@ -81,10 +114,10 @@ int main(void)
         exit_code |= TEST_0_FAILED;
     }
 
-    // if (!s_test_decode_frame_header_ver_t1())
-    // {
-    //     exit_code |= TEST_1_FAILED;
-    // }
+    if (!s_test_decode_side_info_t1())
+    {
+        exit_code |= TEST_1_FAILED;
+    }
 
     if (exit_code)
     {
