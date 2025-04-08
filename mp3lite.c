@@ -6,6 +6,9 @@
 /* Maximum number of channels (2 for MPEG-1 11172-3) */
 #define NCH_MAX 2u
 
+/* Uncompressed frame size, in bytes, for MPEG-1 Audio Layer 3 */
+#define FRAME_SIZE (1152u / 8u)
+
 
 /*****************************************************************************
  *                                                                           *
@@ -227,6 +230,13 @@ static bool s_decode_frame_header_bitrate(const uint32_t frame_header,
 static bool s_decode_frame_header_freq(const uint32_t frame_header,
                                        header_info_t *header_info);
 
+/*
+ * \param frame_header  frame header in system endianness
+ *
+ * \return  Huffman coded frame length in bytes,
+ *          excludes the header, padding, and side information
+ */
+static uint32_t s_frame_comp_len(header_info_t *header_info);
 
 /*****************************************************************************
  *                                                                           *
@@ -269,8 +279,8 @@ static uint8_t s_decode_frame_header(uint32_t frame_header,
     bool freq_b = s_decode_frame_header_freq(frame_header_e, header_info);
     result |= (freq_b) ? 0 : DECODE_HEADER_ERR_FREQ;
 
-    ///TODO: skip padding for now, need more reading
-
+    /* padding is 1 byte for layer 2/3, and 4 bytes for layer 1 (unsupported)*/
+    header_info->padding = (uint16_t) ((frame_header_e & 0x00000200) >> 9);
     header_info->mode = (uint8_t) ((frame_header_e & 0x000000C0u) >> 6);
     header_info->mode_ext = (uint8_t) ((frame_header_e & 0x00000030u) >> 4);
     header_info->emphasis = (uint8_t) (frame_header_e & 0x00000003u);
@@ -378,6 +388,13 @@ static bool s_decode_frame_header_freq(const uint32_t frame_header,
     }
 
     return success;
+}
+
+
+static uint32_t s_frame_comp_len(header_info_t *header_info)
+{
+    return (FRAME_SIZE * header_info->bitrate / header_info->freq +
+            header_info->padding);
 }
 
 
