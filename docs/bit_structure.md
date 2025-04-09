@@ -7,9 +7,6 @@ The header, ironically, does not necessarily reside ahead of the main data. It a
 ```
 
 ## Header
-
-useful link: http://www.mp3-tech.org/programmer/frame_header.html
-
 ```
 Total Length = 4 bytes
 
@@ -32,8 +29,12 @@ Total Length = 4 bytes
     M   2               Emphasis index
 ```
 
+### Useful Links 
+http://www.mp3-tech.org/programmer/frame_header.html
+http://www.mpgedit.org/mpgedit/mpeg_format/mpeghdr.htm
+
 ## Side Information
-The bit structure for the side information is a bit more complicated than the header. The size of the side information depends on the number of channels, where single channel frames have 17 bytes and dual channel frames have 32 bytes of side information. To further the complication, the bit struction also depends on whether a flag (1 bit) is set inside the side information.
+The bit structure for the side information is a bit more complicated than the header. The size of the side information depends on the number of channels, where single channel frames have 17 bytes and dual channel frames have 32 bytes. To further the complication, the bit struction also depends on whether a flag (1 bit) is set inside the side information.
 
 ### Single Channel (Mono)
 ```
@@ -230,4 +231,23 @@ if (!window_switching_flag) block
     x   5               table_select[0][0][region=2]
     w   4               region0_count[0][0]
     v   3               region1_count[0][0]
+```
+
+### Default values for window_switching_flag 
+
+```
+/* Default values only, refer to previous sections for the other variables */
+If (window_switching_flag):
+|     If (block_type == 1 or block_type == 3 or (block_type == 2 and mixed_block_flag)):
+|     |     region0_count = 7
+|     End If
+|
+|     If (block_type == 2 and not(mixed_block_flag)):
+|     |     region0_count = 8
+|     End If
+|
+|     region1_count = 36
+Else:
+|     block_type = 0
+End If
 ```
