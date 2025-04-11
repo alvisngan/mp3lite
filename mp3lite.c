@@ -9,6 +9,9 @@
 /* Uncompressed frame size, in bytes, for MPEG-1 Audio Layer 3 */
 #define FRAME_SIZE (1152u / 8u)
 
+/* Scalefactor table array lengths */
+#define LONG_BLOCK_LEN  20
+#define SHORT_BLOCK_LEN 11
 
 /*****************************************************************************
  *                                                                           *
@@ -802,7 +805,7 @@ static void s_decode_side_info_gr_ch_win_sw_flag(const uint8_t *gr_ch_ptr,
         
         /* Default */
         cur_gr_ch->block_type = 0;
-        
+
         /* Unused */
         cur_gr_ch->mixed_block_flag = 0xFFu;
         cur_gr_ch->subblock_gain[1] = 0xFFu;
@@ -843,9 +846,9 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
  *                                                                           *
  *****************************************************************************/
 
- /* The index for slen1 and slen2 is scalefac_compress[gr][ch] */
-static uint8_t s_slen1[16] = {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4};
-static uint8_t s_slen2[16] = {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3};
+/* The index for slen1 and slen2 is scalefac_compress[gr][ch] */
+static const uint8_t s_slen1[16] = {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4};
+static const uint8_t s_slen2[16] = {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3};
 
 
 /*****************************************************************************
