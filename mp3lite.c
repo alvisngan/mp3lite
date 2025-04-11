@@ -6,6 +6,10 @@
 /* Maximum number of channels (2 for MPEG-1 11172-3) */
 #define NCH_MAX 2u
 
+/* Maximum number of scfsi_band (NOT scalefactor bands) */
+/* (4 for MPEG-1 11172-3)                               */
+#define NUM_SCFSI_BAND_MAX 4u
+
 /* Uncompressed frame size, in bytes, for MPEG-1 Audio Layer 3 */
 #define FRAME_SIZE (1152u / 8u)
 
@@ -589,7 +593,7 @@ static uint8_t s_decode_side_info(const uint8_t *side_info_ptr,
 
 static uint8_t s_scfsi_idx(const uint8_t scfsi_band, const uint8_t ch)
 {
-    assert(scfsi_band < 4u);
+    assert(scfsi_band < NUM_SCFSI_BAND_MAX);
     assert(ch < NCH_MAX);
     
     /* type casting to suppress complier warning */
@@ -849,10 +853,12 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
  *****************************************************************************/
 
 /*
- * The number of BITS used to encode scalefactors
+ * \return  The number of BITS used to encode scalefactors
+ *          If unsuccessful, return 0
  */
 static uint32_t s_decode_scf_part2_length(const uint8_t gr,
                                           const uint8_t ch,
+                                          const uint8_t scfsi_band,
                                           const side_info_t *side_info);
 
 /*****************************************************************************
@@ -864,24 +870,38 @@ static uint32_t s_decode_scf_part2_length(const uint8_t gr,
 
 static uint32_t s_decode_scf_part2_length(const uint8_t gr,
                                           const uint8_t ch,
+                                          const uint8_t scfsi_band,
                                           const side_info_t *side_info)
 {
     assert(side_info);
     assert(gr < 2u);
     assert(ch < NCH_MAX);
+    assert(scfsi_band < NUM_SCFSI_BAND_MAX);
     
     uint32_t slen1_const = 0;
     uint32_t slen2_const = 0;
     uint32_t part2_bitsize = 0;
-
+    
     /* The index for slen1 and slen2 is scalefac_compress[gr][ch] */
     static const uint8_t s_slen1_arr[16] = {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4};
     static const uint8_t s_slen2_arr[16] = {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3};
 
-    const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr, ch)]);
+    /*
+     * When scfsi is set to 1, the scalefactor of the first granule are also 
+     * used for the second granule, therefore they are not transmitted for the 
+     * second granule (ISO/IEC 11172-3: 1993 (E) 2.4.3.4.5 P.34)
+     */
+    uint8_t gr_t = gr;
+    if ((side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] == 1u) && (gr == 1u))
+    {
+        gr_t = 0; /* scalefactors for gr==0 is valid for gr==1 */
+    }
+
+    const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr_t, ch)]);
     const uint32_t slen1 = (uint32_t) s_slen1_arr[gr_ch->scalefac_compress];
     const uint32_t slen2 = (uint32_t) s_slen2_arr[gr_ch->scalefac_compress];
-
+    
+    
     switch (gr_ch->block_type) 
     {
         /* Long block */
@@ -891,6 +911,7 @@ static uint32_t s_decode_scf_part2_length(const uint8_t gr,
             slen1_const = 11;
             slen2_const = 10;
             break;
+        /* Short block */
         case 2:
             switch (gr_ch->mixed_block_flag) 
             {
