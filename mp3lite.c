@@ -239,7 +239,7 @@ static bool s_decode_frame_header_freq(const uint32_t frame_header,
  * \return  Huffman coded frame length in bytes,
  *          excludes the header, padding, and side information
  */
-static uint32_t s_frame_comp_len(header_info_t *header_info);
+static uint32_t s_frame_compressed_len(header_info_t *header_info);
 
 /*****************************************************************************
  *                                                                           *
@@ -394,7 +394,7 @@ static bool s_decode_frame_header_freq(const uint32_t frame_header,
 }
 
 
-static uint32_t s_frame_comp_len(header_info_t *header_info)
+static uint32_t s_frame_compressed_len(header_info_t *header_info)
 {
     return ((FRAME_SIZE * header_info->bitrate / header_info->freq) +
             header_info->padding);
@@ -847,8 +847,8 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
  *****************************************************************************/
 
 /* The index for slen1 and slen2 is scalefac_compress[gr][ch] */
-static const uint8_t s_slen1[16] = {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4};
-static const uint8_t s_slen2[16] = {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3};
+static const uint8_t s_scf_slen1[16] = {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4};
+static const uint8_t s_scf_slen2[16] = {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3};
 
 
 /*****************************************************************************
