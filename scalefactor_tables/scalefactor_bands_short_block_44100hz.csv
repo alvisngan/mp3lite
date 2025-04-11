@@ -1,4 +1,4 @@
-scalefac_band,bitsize,idx_start,idx_end
+scalefac_band,width_of_band,idx_start,idx_end
 0,4,0,3
 1,4,4,7
 2,4,8,11

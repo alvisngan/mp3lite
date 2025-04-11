@@ -35,11 +35,11 @@ for freq in freq_list:
 
         df = pd.read_csv(filename, dtype = int)
 
-        bitsize_str = ("uint8_t " + s_prefix_str  + "scalefac_" + freq + "_" +
-                          block + "_bitsize[] = {")
-        for num in df.loc[:, "bitsize"].astype(str).values:
-            bitsize_str += num + ", "
-        bitsize_str = static_str + const_str + bitsize_str[:-2] + "};"
+        width_of_band_str = ("uint8_t " + s_prefix_str  + "scalefac_" + 
+                             freq + "_" + block + "_width_of_band[] = {")
+        for num in df.loc[:, "width_of_band"].astype(str).values:
+            width_of_band_str += num + ", "
+        width_of_band_str = static_str + const_str + width_of_band_str[:-2] + "};"
 
         idx_start_str = ("uint16_t " + s_prefix_str  + "scalefac_" + freq +
                          "_" +block + "_idx_start[] = {")
@@ -54,16 +54,16 @@ for freq in freq_list:
             idx_end_str += num + ", "
         idx_end_str = static_str + const_str + idx_end_str[:-2] + "};"
 
-        table_str += bitsize_str + '\n' + idx_start_str + '\n' + idx_end_str + "\n\n"
+        table_str += width_of_band_str + '\n' + idx_start_str + '\n' + idx_end_str + "\n\n"
 
 long_struct_str = ("typedef struct {\n" +
-                   indent + "uint8_t bitsize[LONG_BLOCK_LEN];\n" +
+                   indent + "uint8_t width_of_band[LONG_BLOCK_LEN];\n" +
                    indent + "uint16_t idx_start[LONG_BLOCK_LEN];\n" +
                    indent + "uint16_t idx_end[LONG_BLOCK_LEN];\n" +
                    "} scalefac_long_block_table_t;")
 
 short_struct_str = ("typedef struct {\n" +
-                    indent + "uint8_t bitsize[SHORT_BLOCK_LEN];\n" +
+                    indent + "uint8_t width_of_band[SHORT_BLOCK_LEN];\n" +
                     indent + "uint16_t idx_start[SHORT_BLOCK_LEN];\n" +
                     indent + "uint16_t idx_end[SHORT_BLOCK_LEN];\n" +
                     "} scalefac_short_block_table_t;")
