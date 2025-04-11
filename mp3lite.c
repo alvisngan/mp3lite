@@ -10,8 +10,8 @@
 #define FRAME_SIZE (1152u / 8u)
 
 /* Scalefactor table array lengths */
-#define LONG_BLOCK_LEN  20
-#define SHORT_BLOCK_LEN 11
+#define LONG_BLOCK_LEN  21
+#define SHORT_BLOCK_LEN 12
 
 /*****************************************************************************
  *                                                                           *
@@ -842,7 +842,20 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
 
 /*****************************************************************************
  *                                                                           *
- * Typedef's and function prototypes for decoding scale factors              *
+ * Typedef's and function prototypes for decoding scale factors (scf)        *
+ *                                                                           *
+ *****************************************************************************/
+
+/*
+ * The number of BITS used to encode scalefactors
+ */
+static uint32_t s_decode_scf_part2_length(const uint8_t gr,
+                                          const uint8_t ch,
+                                          const side_info_t *side_info);
+
+/*****************************************************************************
+ *                                                                           *
+ * Source code for decoding scale factors (scf)                              *
  *                                                                           *
  *****************************************************************************/
 
@@ -851,8 +864,48 @@ static const uint8_t s_scf_slen1[16] = {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3
 static const uint8_t s_scf_slen2[16] = {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3};
 
 
-/*****************************************************************************
- *                                                                           *
- * Source code for decoding scale factors                                   *
- *                                                                           *
- *****************************************************************************/
+static uint32_t s_decode_scf_part2_length(const uint8_t gr,
+                                          const uint8_t ch,
+                                          const side_info_t *side_info)
+{
+    uint32_t slen1_const = 0;
+    uint32_t slen2_const = 0;
+    uint32_t part2_bitsize = 0;
+    const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr, ch)]);
+    const uint32_t slen1 = (uint32_t) s_scf_slen1[gr_ch->scalefac_compress];
+    const uint32_t slen2 = (uint32_t) s_scf_slen2[gr_ch->scalefac_compress];
+
+    switch (gr_ch->block_type) 
+    {
+        /* Long block */
+        case 0:
+        case 1:
+        case 3:
+            slen1_const = 11;
+            slen2_const = 10;
+            break;
+        case 2:
+            switch (gr_ch->mixed_block_flag) 
+            {
+                case 0:
+                    slen1_const = 18;
+                    slen2_const = 18;
+                    break;
+                case 1:
+                    slen1_const = 17;
+                    slen2_const = 18;
+                    break;
+                default:
+                    part2_bitsize = 0;
+                    break;
+            }
+            break;
+        default:
+            part2_bitsize = 0;
+            break;
+    }
+
+    part2_bitsize = slen1_const * slen1 + slen2_const * slen2;
+
+    return part2_bitsize;
+}
