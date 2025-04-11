@@ -358,8 +358,8 @@ static bool s_decode_frame_header_bitrate(const uint32_t frame_header,
     }
     else
     {
-        const uint16_t bitrate_layer3[] = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
-        header_info->bitrate = bitrate_layer3[bitrate_idx];
+        static const uint16_t s_bitrate_layer3[] = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320};
+        header_info->bitrate = s_bitrate_layer3[bitrate_idx];
     }
 
     return success;
@@ -728,6 +728,8 @@ static bool s_decode_side_info_gr_ch_loop(const uint8_t *gr_ch_ptr,
                                           const header_info_t *header_info)
 {
     assert(gr_ch_ptr && side_info && header_info);
+    assert(gr < 2u);
+    assert(ch < NCH_MAX);
     
     bool success = false;
     side_info_gr_ch_t *cur_gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr, ch)]);
@@ -859,21 +861,26 @@ static uint32_t s_decode_scf_part2_length(const uint8_t gr,
  *                                                                           *
  *****************************************************************************/
 
-/* The index for slen1 and slen2 is scalefac_compress[gr][ch] */
-static const uint8_t s_scf_slen1[16] = {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4};
-static const uint8_t s_scf_slen2[16] = {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3};
-
 
 static uint32_t s_decode_scf_part2_length(const uint8_t gr,
                                           const uint8_t ch,
                                           const side_info_t *side_info)
 {
+    assert(side_info);
+    assert(gr < 2u);
+    assert(ch < NCH_MAX);
+    
     uint32_t slen1_const = 0;
     uint32_t slen2_const = 0;
     uint32_t part2_bitsize = 0;
+
+    /* The index for slen1 and slen2 is scalefac_compress[gr][ch] */
+    static const uint8_t s_slen1_arr[16] = {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4};
+    static const uint8_t s_slen2_arr[16] = {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3};
+
     const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr, ch)]);
-    const uint32_t slen1 = (uint32_t) s_scf_slen1[gr_ch->scalefac_compress];
-    const uint32_t slen2 = (uint32_t) s_scf_slen2[gr_ch->scalefac_compress];
+    const uint32_t slen1 = (uint32_t) s_slen1_arr[gr_ch->scalefac_compress];
+    const uint32_t slen2 = (uint32_t) s_slen2_arr[gr_ch->scalefac_compress];
 
     switch (gr_ch->block_type) 
     {
@@ -905,7 +912,7 @@ static uint32_t s_decode_scf_part2_length(const uint8_t gr,
             break;
     }
 
-    part2_bitsize = slen1_const * slen1 + slen2_const * slen2;
+    part2_bitsize = (slen1_const * slen1) + (slen2_const * slen2);
 
     return part2_bitsize;
 }
