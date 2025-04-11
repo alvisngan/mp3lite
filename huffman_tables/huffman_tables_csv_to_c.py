@@ -120,10 +120,10 @@ heading_str = ("/*\n" +
                " * For table A and table B, ASCII values of 'a' and 'b' are casted to uint8_t\n" +
                " * and used in the num field, and xy_max field is unused\n" +
                " *\n" +
-               " * For big _values, the x and y values can be found with idx and max_xy \n" + 
+               " * For big _values, the x and y values can be found with idx and xy_max \n" + 
                " * with the following equations:\n" +
-               " *" + indent + "x = (idx - y) / (max_xy + 1)\n" +
-               " *" + indent + "y = idx - x * (max_xy + 1)\n" +
+               " *" + indent + "x = (idx - y) / (xy_max + 1)\n" +
+               " *" + indent + "y = idx - x * (xy_max + 1)\n" +
                " *\n" +
                " * For count1 quadruples , the v, w, x and y values can be found \n" +
                " * with idx with the following equations:\n" +
