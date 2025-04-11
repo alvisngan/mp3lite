@@ -848,7 +848,7 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
 
 /*****************************************************************************
  *                                                                           *
- * Typedef's and function prototypes for decoding scale factors (scf)        *
+ * Typedef's and function prototypes for decoding scale factors (scalefac)   *
  *                                                                           *
  *****************************************************************************/
 
@@ -856,22 +856,22 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
  * \return  The number of BITS used to encode scalefactors
  *          If unsuccessful, return 0
  */
-static uint32_t s_decode_scf_part2_length(const uint8_t gr,
-                                          const uint8_t ch,
-                                          const uint8_t scfsi_band,
-                                          const side_info_t *side_info);
+static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
+                                               const uint8_t ch,
+                                               const uint8_t scfsi_band,
+                                               const side_info_t *side_info);
 
 /*****************************************************************************
  *                                                                           *
- * Source code for decoding scale factors (scf)                              *
+ * Source code for decoding scale factors (scalefac)                         *
  *                                                                           *
  *****************************************************************************/
 
 
-static uint32_t s_decode_scf_part2_length(const uint8_t gr,
-                                          const uint8_t ch,
-                                          const uint8_t scfsi_band,
-                                          const side_info_t *side_info)
+static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
+                                               const uint8_t ch,
+                                               const uint8_t scfsi_band,
+                                               const side_info_t *side_info)
 {
     assert(side_info);
     assert(gr < 2u);
