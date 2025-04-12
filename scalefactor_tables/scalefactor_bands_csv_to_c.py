@@ -35,39 +35,41 @@ for freq in freq_list:
 
         df = pd.read_csv(filename, dtype = int)
 
-        width_of_band_str = ("uint8_t " + s_prefix_str  + "scalefac_" + 
-                             freq + "_" + block + "_width_of_band[] = {")
-        for num in df.loc[:, "width_of_band"].astype(str).values:
-            width_of_band_str += num + ", "
-        width_of_band_str = static_str + const_str + width_of_band_str[:-2] + "};"
+        # initiate the structs
+        init_str = static_str + const_str + "scalefac_" + block + "_table_t "
+        init_str += s_prefix_str + "scalefac_" + block + '_' + freq + " = {\n"
+        init_str += indent + ".idx_start = {"
 
-        idx_start_str = ("uint16_t " + s_prefix_str  + "scalefac_" + freq +
-                         "_" +block + "_idx_start[] = {")
+        # width_of_band can be calculate by idx_end - idx_start
+
+        idx_start_str = ''
         for num in df.loc[:, "idx_start"].astype(str).values:
             idx_start_str += num + ", "
-        idx_start_str = static_str + const_str + idx_start_str[:-2] + "};"
+        idx_start_str = idx_start_str[:-2] + "},"
+
+        init_str += idx_start_str + '\n' + indent + ".idx_end = {"
 
 
-        idx_end_str = ("uint16_t " + s_prefix_str  + "scalefac_" + freq + "_" +
-                          block + "_idx_end[] = {")
+        idx_end_str = ''
         for num in df.loc[:, "idx_end"].astype(str).values:
             idx_end_str += num + ", "
-        idx_end_str = static_str + const_str + idx_end_str[:-2] + "};"
+        idx_end_str = idx_end_str[:-2] + "}"
 
-        table_str += width_of_band_str + '\n' + idx_start_str + '\n' + idx_end_str + "\n\n"
+        init_str += idx_end_str + "\n};\n"
+
+        table_str += init_str
+
 
 long_struct_str = ("typedef struct {\n" +
-                   indent + "uint8_t width_of_band[LONG_BLOCK_LEN];\n" +
                    indent + "uint16_t idx_start[LONG_BLOCK_LEN];\n" +
                    indent + "uint16_t idx_end[LONG_BLOCK_LEN];\n" +
-                   "} scalefac_long_block_table_t;")
+                   "} scalefac_long_table_t;")
 
 short_struct_str = ("typedef struct {\n" +
-                    indent + "uint8_t width_of_band[SHORT_BLOCK_LEN];\n" +
                     indent + "uint16_t idx_start[SHORT_BLOCK_LEN];\n" +
                     indent + "uint16_t idx_end[SHORT_BLOCK_LEN];\n" +
-                    "} scalefac_short_block_table_t;")
+                    "} scalefac_short_table_t;")
 
-file_text_str = table_str
+file_text_str = long_struct_str + "\n\n" + short_struct_str + "\n\n" + table_str
 with open(file_name + file_extension, 'w') as text_file:
     text_file.write(file_text_str)
