@@ -937,7 +937,7 @@ static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
     uint32_t slen1_const = 0;
     uint32_t slen2_const = 0;
 
-    uint8_t gr_t = gr; /* gr_t == 0  if (scfsi == 1 && gr ==0) */
+    uint8_t gr_t = gr; /* gr_t == 0  if (scfsi == 1 && gr == 1) */
     uint8_t slen1_u8 = 0;
     uint8_t slen2_u8 = 0;
 
