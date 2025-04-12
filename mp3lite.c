@@ -853,6 +853,9 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
  *****************************************************************************/
 
 /*
+ * part2_length is defined in ISO/IEC 11172-3 as the number of BITS used to 
+ * encode scalefactors
+ *
  * \return  The number of BITS used to encode scalefactors
  *          If unsuccessful, return 0
  */
