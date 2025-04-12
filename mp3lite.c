@@ -854,6 +854,31 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
  *****************************************************************************/
 
 /*
+ * Getting slen1 and slen2, the BITSIZE of scalefactor for a range of
+ * scalefactor bands
+ * 
+ * If scfsi == 1 && gr == 1, the scalefactor of the first granule will be used
+ * instead (ISO/IEC 11172-3: 1993 (E) 2.4.3.4.5 P.34)
+ * 
+ * \param slen1     Address of slen1, will be modified by the function
+ *
+ * \param slen2     Address of slen2, will be modified by the function
+ *
+ * \param gr        Address of the granule number,
+ *                  if scfsi == 1 && gr == 1, the scalefactor of the first 
+ *                  granule are also used for the second granule, hence gr will  
+ *                  be modified to gr = 0
+ *                  (Recommand using a copy of gr in this function)
+ *     
+ */
+static void s_decode_scalefac_slen(uint8_t *slen1,
+                                   uint8_t *slen2,
+                                   uint8_t *gr,         
+                                   const uint8_t ch,
+                                   const uint8_t scfsi_band,
+                                   const side_info_t *side_info);
+
+/*
  * part2_length is defined in ISO/IEC 11172-3 as the number of BITS used to 
  * encode scalefactors (ISO/IEC 11172-3: 1993 (E) 2.4.3.4.5 P.34)
  *
@@ -872,6 +897,33 @@ static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
  *****************************************************************************/
 
 
+ static void s_decode_scalefac_slen(uint8_t *slen1,
+                                    uint8_t *slen2,
+                                    uint8_t *gr,         
+                                    const uint8_t ch,
+                                    const uint8_t scfsi_band,
+                                    const side_info_t *side_info)
+{
+    /* The index for slen1 and slen2 is scalefac_compress[gr][ch] */
+    static const uint8_t s_slen1_arr[16] = {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4};
+    static const uint8_t s_slen2_arr[16] = {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3};
+
+    /*
+     * When scfsi is set to 1, the scalefactor of the first granule are also 
+     * used for the second granule, therefore they are not transmitted for the 
+     * second granule (ISO/IEC 11172-3: 1993 (E) 2.4.3.4.5 P.34)
+     */
+    if ((side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] == 1u) && (*gr == 1u))
+    {
+        *gr = 0; /* scalefactors for gr==0 is valid for gr==1 */
+    }
+
+    const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(*gr, ch)]);
+    *slen1 = s_slen1_arr[gr_ch->scalefac_compress];
+    *slen2 = s_slen2_arr[gr_ch->scalefac_compress];
+}
+
+
 static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
                                                const uint8_t ch,
                                                const uint8_t scfsi_band,
@@ -884,27 +936,17 @@ static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
     
     uint32_t slen1_const = 0;
     uint32_t slen2_const = 0;
-    uint32_t part2_bitsize = 0;
-    
-    /* The index for slen1 and slen2 is scalefac_compress[gr][ch] */
-    static const uint8_t s_slen1_arr[16] = {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4};
-    static const uint8_t s_slen2_arr[16] = {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3};
 
-    /*
-     * When scfsi is set to 1, the scalefactor of the first granule are also 
-     * used for the second granule, therefore they are not transmitted for the 
-     * second granule (ISO/IEC 11172-3: 1993 (E) 2.4.3.4.5 P.34)
-     */
-    uint8_t gr_t = gr;
-    if ((side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] == 1u) && (gr == 1u))
-    {
-        gr_t = 0; /* scalefactors for gr==0 is valid for gr==1 */
-    }
+    uint8_t gr_t = gr; /* gr_t == 0  if (scfsi == 1 && gr ==0) */
+    uint8_t slen1_u8 = 0;
+    uint8_t slen2_u8 = 0;
 
+    s_decode_scalefac_slen(&slen1_u8, &slen2_u8, &gr_t, 
+                           ch, scfsi_band, side_info);
+   
+    const uint32_t slen1 = (uint32_t) slen1_u8;
+    const uint32_t slen2 = (uint32_t) slen2_u8;
     const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr_t, ch)]);
-    const uint32_t slen1 = (uint32_t) s_slen1_arr[gr_ch->scalefac_compress];
-    const uint32_t slen2 = (uint32_t) s_slen2_arr[gr_ch->scalefac_compress];
-    
     
     switch (gr_ch->block_type) 
     {
@@ -928,16 +970,16 @@ static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
                     slen2_const = 18;
                     break;
                 default:
-                    part2_bitsize = 0;
+                    slen1_const = 0;
+                    slen2_const = 0;
                     break;
             }
             break;
         default:
-            part2_bitsize = 0;
+            slen1_const = 0;
+            slen2_const = 0;
             break;
     }
 
-    part2_bitsize = (slen1_const * slen1) + (slen2_const * slen2);
-
-    return part2_bitsize;
+    return (slen1_const * slen1) + (slen2_const * slen2);
 }
