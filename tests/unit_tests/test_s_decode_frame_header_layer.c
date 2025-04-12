@@ -165,8 +165,8 @@ static bool s_test_decode_frame_header_layer_t2(void)
     if (test_3)
     {
         /* layer number can be anything other than 1, 2, 3*/
-        bool test_3_bool = (header_info.layer != 3 ||
-                            header_info.layer != 2 ||
+        bool test_3_bool = (header_info.layer != 3 &&
+                            header_info.layer != 2 &&
                             header_info.layer != 1); 
         test_3 = (test_3_bool) ? true : false;
     }

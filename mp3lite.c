@@ -56,7 +56,7 @@ static uint16_t s_copy_bitstream_u16(const uint8_t *bitstream_ptr);
  * \param bitshift  Number of bits to be shifted to the left, 
  *                  less than 8, in bits
  *
- * \param len       Length of the bits to be shifted, in bytes
+ * \param len       Number of bytes of data to be shifted
  */
 static void s_align_array(uint8_t *dest, const uint8_t *src, 
                           const uint32_t bitshift, const uint32_t len);
@@ -82,7 +82,7 @@ static uint16_t s_swap_endian_u16(uint16_t val)
 {
     uint8_t *val_ptr = (uint8_t *) &val;
 
-    return (((uint16_t) val_ptr[0] << 8)|
+    return ((uint16_t)((uint16_t) val_ptr[0] << 8)|
             (uint16_t) val_ptr[1]);
 }
 
@@ -92,10 +92,10 @@ static uint16_t s_copy_bitstream_u16(const uint8_t *bitstream_ptr)
     uint16_t val = 0;
 
 #if !defined (MP3LITE_BIG_ENDIAN)
-    val = (((uint16_t) bitstream_ptr[0] << 8)|
+    val = ((uint16_t)((uint16_t) bitstream_ptr[0] << 8)|
            (uint16_t) bitstream_ptr[1]);
 #else
-    val = (((uint16_t) bitstream_ptr[1] << 8)|
+    val = ((uint16_t)((uint16_t) bitstream_ptr[1] << 8)|
            (uint16_t) bitstream_ptr[0]);
 #endif
 
@@ -114,7 +114,8 @@ static void s_align_array(uint8_t *dest, const uint8_t *src,
     {   
         /* Each gr_ch_ptr element are scatter into two adjacent bytes */
         /* e.g. 0bXXXXXABC|0bDEFGHXXX ==> 0bABCDEFGH   (bitshift = 5) */
-        dest[i] = ((src[i] << bitshift) | ((src[i + 1u]) >> (8u - bitshift)));
+        dest[i] = (uint8_t) ((src[i] << bitshift) | 
+                             ((src[i + 1u]) >> (8u - bitshift)));
     }
 }
 
