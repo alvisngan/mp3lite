@@ -889,6 +889,34 @@ static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
                                                const uint8_t ch,
                                                const uint8_t scfsi_band,
                                                const side_info_t *side_info);
+ 
+/* 
+ *
+ */
+static uint32_t s_decode_scalefac_band_bitsize();
+
+/* Obtaining the scfci_band from scalefac_band, yes they are different, I know.
+ * 
+ * scalefac_band    scalefactor for each frequency subband block
+ *
+ * scfsi_band       scalefactor selection (scfsi) group number,
+ *                  where a set of scalefac_band have the same scfsi property
+ *                  (ISO/IEC 11172-3: 1993 (E) 2.4.2.7 P.25)
+ */
+static uint8_t s_decode_scalefac_scfci_band(uint8_t scalefac_band);
+
+static bool s_decode_scalefac(const uint8_t *main_data_ptr,
+                              const side_info_t *side_info,
+                              const header_info_t header_info);
+
+/*
+ * Decoding scalefactor for EACH granule and channel, 
+ */                              
+static bool s_decode_scalefac_gr_ch_loop(const uint8_t *gr_ch_ptr, 
+                                         const uint8_t gr,
+                                         const uint8_t ch,
+                                         const side_info_t *side_info,
+                                         const header_info_t header_info);
 
 /*****************************************************************************
  *                                                                           *
@@ -982,4 +1010,17 @@ static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
     }
 
     return (slen1_const * slen1) + (slen2_const * slen2);
+}
+
+
+static bool s_decode_scalefac(const uint8_t *main_data_ptr,
+                              const side_info_t *side_info,
+                              const header_info_t header_info)
+{
+    bool success = false;
+
+    /* gr_ch_ptr to be aligned the byte boundary */
+    uint8_t gr_ch_ptr[18u]; /* Max 144 bits for each [gr][ch] */
+
+    return success;
 }
