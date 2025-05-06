@@ -1,8 +1,18 @@
 ## Running the Tests
 Navigate to the `tests` directory and use the following commands in the terminal:
-```
+```bash
 $ cd build
 $ cmake ..
+$ cmake --build .
+$ ctest --output-on-failure
+```
+### Choosing a Compiler
+Different compilers provide different warning and error messages. To specify a compiler, use the following commands instead (in the `tests` directrory):
+```bash
+# Example using clang
+# Change the complier executable directory depending on your system
+
+$ cmake -DCMAKE_C_COMPILER=/usr/bin/clang ..
 $ cmake --build .
 $ ctest --output-on-failure
 ```
