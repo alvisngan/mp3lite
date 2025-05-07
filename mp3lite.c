@@ -863,17 +863,14 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
  * \param slen1     Address of slen1, will be modified by the function
  *
  * \param slen2     Address of slen2, will be modified by the function
- *
- * \param gr        Address of the granule number,
- *                  if scfsi == 1 && gr == 1, the scalefactor of the first 
- *                  granule are also used for the second granule, hence gr will  
- *                  be modified to gr = 0
- *                  (Recommand using a copy of gr in this function)
- *     
+ *      
+ * \param gr        if scfsi == 1 && gr == 1, the scalefactor of the first 
+ *                  granule are also used for the second granule, this function
+ *                  will automatically choose the correct granule based on gr
  */
 static void s_decode_scalefac_slen(uint8_t *slen1,
                                    uint8_t *slen2,
-                                   uint8_t *gr,         
+                                   const uint8_t gr,         
                                    const uint8_t ch,
                                    const uint8_t scfsi_band,
                                    const side_info_t *side_info);
@@ -932,7 +929,7 @@ static bool s_decode_scalefac_gr_ch_loop(const uint8_t *gr_ch_ptr,
 
  static void s_decode_scalefac_slen(uint8_t *slen1,
                                     uint8_t *slen2,
-                                    uint8_t *gr,         
+                                    const uint8_t gr,         
                                     const uint8_t ch,
                                     const uint8_t scfsi_band,
                                     const side_info_t *side_info)
@@ -946,12 +943,13 @@ static bool s_decode_scalefac_gr_ch_loop(const uint8_t *gr_ch_ptr,
      * used for the second granule, therefore they are not transmitted for the 
      * second granule (ISO/IEC 11172-3: 1993 (E) 2.4.3.4.5 P.34)
      */
-    if ((side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] == 1u) && (*gr == 1u))
+    uint8_t gr_t = gr; /* temporary granule number */
+    if ((side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] == 1u) && (gr == 1u))
     {
-        *gr = 0; /* scalefactors for gr==0 is valid for gr==1 */
+        gr_t = 0; /* scalefactors for gr==0 is valid for gr==1 */
     }
 
-    const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(*gr, ch)]);
+    const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr_t, ch)]);
     *slen1 = s_slen1_arr[gr_ch->scalefac_compress];
     *slen2 = s_slen2_arr[gr_ch->scalefac_compress];
 }
@@ -982,15 +980,25 @@ static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
     uint32_t slen1_const = 0;
     uint32_t slen2_const = 0;
 
-    uint8_t gr_t = gr; /* gr_t == 0  if (scfsi == 1 && gr == 1) */
     uint8_t slen1_u8 = 0;
     uint8_t slen2_u8 = 0;
 
-    s_decode_scalefac_slen(&slen1_u8, &slen2_u8, &gr_t, 
+    s_decode_scalefac_slen(&slen1_u8, &slen2_u8, gr, 
                            ch, scfsi_band, side_info);
    
     const uint32_t slen1 = (uint32_t) slen1_u8;
     const uint32_t slen2 = (uint32_t) slen2_u8;
+
+    /*
+     * When scfsi is set to 1, the scalefactor of the first granule are also 
+     * used for the second granule, therefore they are not transmitted for the 
+     * second granule (ISO/IEC 11172-3: 1993 (E) 2.4.3.4.5 P.34)
+     */
+    uint8_t gr_t = gr; /* temporary granule number */
+    if ((side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] == 1u) && (gr == 1u))
+    {
+        gr_t = 0; /* scalefactors for gr==0 is valid for gr==1 */
+    }
     const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr_t, ch)]);
     
     switch (gr_ch->block_type) 
