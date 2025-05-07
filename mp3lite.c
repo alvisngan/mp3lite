@@ -854,6 +854,31 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
  *****************************************************************************/
 
 /*
+ * Obtainning the granule number where scalefactor information is stored
+ *
+ * When scfsi is set to 1, the scalefactor of the first granule are also 
+ * used for the second granule, therefore they are not transmitted for the 
+ * second granule (ISO/IEC 11172-3: 1993 (E) 2.4.3.4.5 P.34)
+ *
+ * \param gr            current granule, starts at 0
+ *
+ * \param ch            current channel, starts at 0
+ *
+ * \param scfsi_band    scalefactor selection group number,
+ *                      see ./docs/naming_convention.md for more detail
+ *
+ * \param side_info     side information for the current frame
+ *
+ * \return              granule number where scalefactor information is stored,
+ *                          0: first granule
+ *                          1: second granule
+ */
+static uint8_t s_decode_scalefac_location(const uint8_t gr,         
+                                          const uint8_t ch,
+                                          const uint8_t scfsi_band,
+                                          const side_info_t *side_info);
+
+/*
  * Getting slen1 and slen2, the BITSIZE of scalefactor for a range of
  * scalefactor bands
  * 
@@ -927,27 +952,35 @@ static bool s_decode_scalefac_gr_ch_loop(const uint8_t *gr_ch_ptr,
  *****************************************************************************/
 
 
- static void s_decode_scalefac_slen(uint8_t *slen1,
-                                    uint8_t *slen2,
-                                    const uint8_t gr,         
-                                    const uint8_t ch,
-                                    const uint8_t scfsi_band,
-                                    const side_info_t *side_info)
+static uint8_t s_decode_scalefac_location(const uint8_t gr,         
+                                          const uint8_t ch,
+                                          const uint8_t scfsi_band,
+                                          const side_info_t *side_info)
+{
+    uint8_t gr_t = gr; /* temporary granule number */
+
+    if ((side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] == 1u) && (gr == 1u))
+    {
+        gr_t = 0; /* scalefactors for gr==0 is valid for gr==1 */
+    }
+
+    return gr_t;
+}                                          
+
+
+static void s_decode_scalefac_slen(uint8_t *slen1,
+                                   uint8_t *slen2,
+                                   const uint8_t gr,         
+                                   const uint8_t ch,
+                                   const uint8_t scfsi_band,
+                                   const side_info_t *side_info)
 {
     /* The index for slen1 and slen2 is scalefac_compress[gr][ch] */
     static const uint8_t s_slen1_arr[16] = {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4};
     static const uint8_t s_slen2_arr[16] = {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3};
 
-    /*
-     * When scfsi is set to 1, the scalefactor of the first granule are also 
-     * used for the second granule, therefore they are not transmitted for the 
-     * second granule (ISO/IEC 11172-3: 1993 (E) 2.4.3.4.5 P.34)
-     */
-    uint8_t gr_t = gr; /* temporary granule number */
-    if ((side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] == 1u) && (gr == 1u))
-    {
-        gr_t = 0; /* scalefactors for gr==0 is valid for gr==1 */
-    }
+    /* temporary granule number where scalefac are stored */
+    uint8_t gr_t = s_decode_scalefac_location(gr, ch, scfsi_band, side_info);
 
     const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr_t, ch)]);
     *slen1 = s_slen1_arr[gr_ch->scalefac_compress];
@@ -989,16 +1022,9 @@ static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
     const uint32_t slen1 = (uint32_t) slen1_u8;
     const uint32_t slen2 = (uint32_t) slen2_u8;
 
-    /*
-     * When scfsi is set to 1, the scalefactor of the first granule are also 
-     * used for the second granule, therefore they are not transmitted for the 
-     * second granule (ISO/IEC 11172-3: 1993 (E) 2.4.3.4.5 P.34)
-     */
-    uint8_t gr_t = gr; /* temporary granule number */
-    if ((side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] == 1u) && (gr == 1u))
-    {
-        gr_t = 0; /* scalefactors for gr==0 is valid for gr==1 */
-    }
+    /* temporary granule number where scalefac are stored */
+    uint8_t gr_t = s_decode_scalefac_location(gr, ch, scfsi_band, side_info);
+    
     const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr_t, ch)]);
     
     switch (gr_ch->block_type) 
