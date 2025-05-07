@@ -891,9 +891,14 @@ static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
                                                const side_info_t *side_info);
  
 /* 
- *
+ * Obtaining the number of bits used for the transmission of the scalefactor
+ * for a specific granule, channel, scalefac_band, and window
+ * (window is only applicable for short blocks)
  */
-static uint32_t s_decode_scalefac_band_bitsize();
+static uint8_t s_decode_scalefac_band_bitsize(uint8_t scalefac_band,
+                                               uint8_t gr,         
+                                               const uint8_t ch,
+                                               const side_info_t *side_info);
 
 /* Obtaining the scfci_band from scalefac_band, yes they are different, I know.
  * 
@@ -949,6 +954,18 @@ static bool s_decode_scalefac_gr_ch_loop(const uint8_t *gr_ch_ptr,
     const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(*gr, ch)]);
     *slen1 = s_slen1_arr[gr_ch->scalefac_compress];
     *slen2 = s_slen2_arr[gr_ch->scalefac_compress];
+}
+
+
+static uint8_t s_decode_scalefac_band_bitsize(uint8_t scalefac_band,
+                                               uint8_t gr,         
+                                               const uint8_t ch,
+                                               const side_info_t *side_info)
+{
+    /* page 25 scalefac_compress[gr][ch]*/
+    /* switch statement on block type*/
+    /* case 0: case 1: case 3:*/
+    /* if (scalefac_band <= 10) slen1 */
 }
 
 
