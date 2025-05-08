@@ -1059,35 +1059,38 @@ static uint8_t s_decode_scalefac_band_bitsize(const uint8_t gr,
             }
             break;
         case 2:
-            if (!(gr_ch->mixed_block_flag))
+            switch (gr_ch->mixed_block_flag)
             {
-                if (scalefac_band <= 5)
-                {
-                    bitsize = slen1;
-                }
-                else if (scalefac_band <= 11)
-                {
-                    bitsize = slen2;
-                }
-                else /* scalefac_band = [11, 20] */ 
-                {
-                    /* Undefined */
+                case 0:
+                    if (scalefac_band <= 5)
+                    {
+                        bitsize = slen1;
+                    }
+                    else if (scalefac_band <= 11)
+                    {
+                        bitsize = slen2;
+                    }
+                    else /* scalefac_band = [11, 20] */ 
+                    {
+                        /* Undefined */
+                        bitsize = 0;
+                    }
+                    break;
+                case 1:
+                    /// TODO: What the hell is the specs saying ????
+                    break;
+                default:
+                    /* mixed_flog_flag is undefined */
                     bitsize = 0;
-                }
-            }
-            else /* mixed_block_flag == 1 */
-            {
-                /// TODO: What the hell is the specs saying ????
-
+                    break;
             }
             break;
         default:
             bitsize = 0;
             break;
-        
     }
 
-    return bitsize
+    return bitsize;
 }
 
 
