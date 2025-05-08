@@ -1077,7 +1077,24 @@ static uint8_t s_decode_scalefac_band_bitsize(const uint8_t gr,
                     }
                     break;
                 case 1:
-                    /// TODO: What the hell is the specs saying ????
+                    /// TODO: check specs (P.25), I think this is how it works:
+                    ///       if long block scalefac_band [0, 7] = slen1
+                    ///       if short block [0, 6] = slen1; [7, 11] = slen2
+                    
+                    /* The ISO/IEC 11172-3 spec is worded terribly */
+                    if (scalefac_band <= 6)
+                    {
+                        bitsize = slen1;
+                    }
+                    else if (scalefac_band <= 11)
+                    {
+                        bitsize = slen2;
+                    }
+                    else 
+                    {
+                        /* Undefined */
+                        bitsize = 0;
+                    }
                     break;
                 default:
                     /* mixed_flog_flag is undefined */
