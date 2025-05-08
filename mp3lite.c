@@ -853,7 +853,7 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
 *                                                                           *
 *****************************************************************************/
 
-/* Obtaining the scfci_band from scalefac_band, yes they are different, I swear
+/* Obtaining the scfsi_band from scalefac_band, yes they are different, I swear
  * (for more detail see ./docs/naming_convention.md)
  * 
  * scalefac_band    scalefactor for each frequency subband block
@@ -862,7 +862,7 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
  *                  where a set of scalefac_band have the same scfsi property
  *                  (ISO/IEC 11172-3: 1993 (E) 2.4.2.7 P.25)
  */
-static uint8_t s_decode_scalefac_scfci_band(uint8_t scalefac_band);
+static uint8_t s_decode_scalefac_scfsi_band(uint8_t scalefac_band);
 
 /*
  * Obtainning the granule number where scalefactor information is stored
@@ -927,11 +927,15 @@ static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
  * Obtaining the number of bits used for the transmission of the scalefactor
  * for a specific granule, channel, scalefac_band, and window
  * (window is only applicable for short blocks)
+ *
+ * \return      bitsize
+ *              0 if failure
  */
-static uint8_t s_decode_scalefac_band_bitsize(uint8_t scalefac_band,
-                                               uint8_t gr,         
-                                               const uint8_t ch,
-                                               const side_info_t *side_info);
+static uint8_t s_decode_scalefac_band_bitsize(const uint8_t gr,         
+                                              const uint8_t ch,
+                                              const uint8_t scalefac_band,
+                                              const uint8_t scfsi_band,
+                                              const side_info_t *side_info);
 
 static bool s_decode_scalefac(const uint8_t *main_data_ptr,
                               const side_info_t *side_info,
@@ -953,7 +957,7 @@ static bool s_decode_scalefac_gr_ch_loop(const uint8_t *gr_ch_ptr,
  *****************************************************************************/
 
 
-static uint8_t s_decode_scalefac_scfci_band(const uint8_t scalefac_band)
+static uint8_t s_decode_scalefac_scfsi_band(const uint8_t scalefac_band)
 {
     assert(scalefac_band < 20);
 
@@ -1017,24 +1021,73 @@ static void s_decode_scalefac_slen(uint8_t *slen1,
 }
 
 
-static uint8_t s_decode_scalefac_band_bitsize(uint8_t scalefac_band,
-                                               uint8_t gr,         
-                                               const uint8_t ch,
-                                               const side_info_t *side_info)
+static uint8_t s_decode_scalefac_band_bitsize(const uint8_t gr,         
+                                              const uint8_t ch,
+                                              const uint8_t scalefac_band,
+                                              const uint8_t scfsi_band,
+                                              const side_info_t *side_info)
 {
     /* page 25 scalefac_compress[gr][ch]*/
     /* switch statement on block type*/
     /* case 0: case 1: case 3:*/
     /* if (scalefac_band <= 10) slen1 */
+    assert(scalefac_band <= 20);
+
+    uint8_t bitsize = 0;
 
     /* temporary granule number where scalefac are stored */
     uint8_t gr_t = s_decode_scalefac_location(gr, ch, scfsi_band, side_info);
-
     const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr_t, ch)]);
-    switch (gr_ch) 
+
+    /* the bitsize is dependent on the block_type, scalefac_band and slen */
+    uint8_t slen1 = 0;
+    uint8_t slen2 = 0;
+    s_decode_scalefac_slen(&slen1, &slen2, gr, ch, scfsi_band, side_info);
+
+    switch (gr_ch->block_type) 
     {
-        cases
+        case 0:
+        case 1:
+        case 3:
+            if (scalefac_band <= 10)
+            {
+                bitsize = slen1;
+            }
+            else /* [11, 20] */ 
+            {
+                bitsize = slen2;
+            }
+            break;
+        case 2:
+            if (!(gr_ch->mixed_block_flag))
+            {
+                if (scalefac_band <= 5)
+                {
+                    bitsize = slen1;
+                }
+                else if (scalefac_band <= 11)
+                {
+                    bitsize = slen2;
+                }
+                else /* scalefac_band = [11, 20] */ 
+                {
+                    /* Undefined */
+                    bitsize = 0;
+                }
+            }
+            else /* mixed_block_flag == 1 */
+            {
+                /// TODO: What the hell is the specs saying ????
+
+            }
+            break;
+        default:
+            bitsize = 0;
+            break;
+        
     }
+
+    return bitsize
 }
 
 
