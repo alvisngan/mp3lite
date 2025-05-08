@@ -848,10 +848,21 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
 
 
 /*****************************************************************************
- *                                                                           *
- * Typedef's and function prototypes for decoding scale factors (scalefac)   *
- *                                                                           *
- *****************************************************************************/
+*                                                                           *
+* Typedef's and function prototypes for decoding scale factors (scalefac)   *
+*                                                                           *
+*****************************************************************************/
+
+/* Obtaining the scfci_band from scalefac_band, yes they are different, I swear
+ * (for more detail see ./docs/naming_convention.md)
+ * 
+ * scalefac_band    scalefactor for each frequency subband block
+ *
+ * scfsi_band       scalefactor selection (scfsi) group number,
+ *                  where a set of scalefac_band have the same scfsi property
+ *                  (ISO/IEC 11172-3: 1993 (E) 2.4.2.7 P.25)
+ */
+static uint8_t s_decode_scalefac_scfci_band(uint8_t scalefac_band);
 
 /*
  * Obtainning the granule number where scalefactor information is stored
@@ -922,16 +933,6 @@ static uint8_t s_decode_scalefac_band_bitsize(uint8_t scalefac_band,
                                                const uint8_t ch,
                                                const side_info_t *side_info);
 
-/* Obtaining the scfci_band from scalefac_band, yes they are different, I know.
- * 
- * scalefac_band    scalefactor for each frequency subband block
- *
- * scfsi_band       scalefactor selection (scfsi) group number,
- *                  where a set of scalefac_band have the same scfsi property
- *                  (ISO/IEC 11172-3: 1993 (E) 2.4.2.7 P.25)
- */
-static uint8_t s_decode_scalefac_scfci_band(uint8_t scalefac_band);
-
 static bool s_decode_scalefac(const uint8_t *main_data_ptr,
                               const side_info_t *side_info,
                               const header_info_t header_info);
@@ -950,6 +951,34 @@ static bool s_decode_scalefac_gr_ch_loop(const uint8_t *gr_ch_ptr,
  * Source code for decoding scale factors (scalefac)                         *
  *                                                                           *
  *****************************************************************************/
+
+
+static uint8_t s_decode_scalefac_scfci_band(const uint8_t scalefac_band)
+{
+    assert(scalefac_band < 20);
+
+    /* ISO/IEC 11172-3: 1993(E) P.25 */
+    uint8_t scfsi_band = 0;
+
+    if (scalefac_band <= 5)
+    {
+        scfsi_band = 0;
+    }
+    else if (scalefac_band <= 10)
+    {
+        scfsi_band = 1;
+    }
+    else if (scalefac_band <= 15)
+    {
+        scfsi_band = 16;
+    }
+    else
+    {
+        scfsi_band = 20;
+    }
+
+    return scfsi_band;
+}
 
 
 static uint8_t s_decode_scalefac_location(const uint8_t gr,         
@@ -997,6 +1026,15 @@ static uint8_t s_decode_scalefac_band_bitsize(uint8_t scalefac_band,
     /* switch statement on block type*/
     /* case 0: case 1: case 3:*/
     /* if (scalefac_band <= 10) slen1 */
+
+    /* temporary granule number where scalefac are stored */
+    uint8_t gr_t = s_decode_scalefac_location(gr, ch, scfsi_band, side_info);
+
+    const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr_t, ch)]);
+    switch (gr_ch) 
+    {
+        cases
+    }
 }
 
 
