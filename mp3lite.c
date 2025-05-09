@@ -853,7 +853,8 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
 *                                                                           *
 *****************************************************************************/
 
-/* Obtaining the scfsi_band from scalefac_band, yes they are different, I swear
+/* 
+ * Obtaining the scfsi_band from scalefac_band, yes they are different, I swear
  * (for more detail see ./docs/naming_convention.md)
  * 
  * scalefac_band    scalefactor for each frequency subband block
@@ -892,6 +893,9 @@ static uint8_t s_decode_scalefac_location(const uint8_t gr,
 /*
  * Getting slen1 and slen2, the BITSIZE of scalefactor for a range of
  * scalefactor bands
+ *
+ * For the bitsize of a specific scalefactor band, use the
+ * s_decode_scalefac_band_bitsize function after finding slen1 and slen2
  * 
  * If scfsi == 1 && gr == 1, the scalefactor of the first granule will be used
  * instead (ISO/IEC 11172-3: 1993 (E) 2.4.3.4.5 P.34)
@@ -928,13 +932,41 @@ static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
  * for a specific granule, channel, scalefac_band, and window
  * (window is only applicable for short blocks)
  *
- * \return      bitsize
- *              0 if failure
+ * \params scalefac_band    Current scalefactor band
+ *
+ * \param slen1             See s_decode_scalefac_slen
+ *
+ * \param slen2             See s_decode_scalefac_slen
+ *
+ * \param get_long          Only used when the following condition is met:
+ *                          (block_type == 2 && mixed_block_flag == 1)
+ *                          When this parameter is set to TRUE, this function 
+ *                          will obtain the bitsize of scalefac_l
+ *                          When this parameter is set to FALSE this function 
+ *                          will obtain the bitsize of scalefac_s
+ *                          Otherwise, see return for more detail
+ *                    
+ * \param side_info_gr_ch   Side information where scalefactors are stored
+ *                          Note that scalefactor is not necessarily stored in
+ *                          the same granule, see s_decode_scalefac_location for 
+ *                          more detail
+ *
+ * \return                  If success, it returns the bitsize of either 
+ *                          scalefac_l or scalefac_s, depending on the 
+ *                          block_type and mixed_block_flag
+ *                          If failure, return 0
+ *
+ *                          block_type  mixed_block_flag    return    
+ *                          ----------  ----------------    -------------------
+ *                          0, 1, 3     N/A                 scalefac_l   
+ *                          2           0                   scalefac_s   
+ *                          2           1                   *see param get_long 
  */
-static uint8_t s_decode_scalefac_band_bitsize(const uint8_t gr,         
-                                              const uint8_t ch,
-                                              const uint8_t scalefac_band,
-                                              const uint8_t scfsi_band,
+static uint8_t s_decode_scalefac_band_bitsize(const uint8_t scalefac_band,
+                                              const uint8_t slen1,
+                                              const uint8_t slen2,
+                                              const bool get_long,
+                                              const side_info_gr_ch_t side_info_gr_ch,
                                               const side_info_t *side_info);
 
 static bool s_decode_scalefac(const uint8_t *main_data_ptr,
@@ -1027,10 +1059,6 @@ static uint8_t s_decode_scalefac_band_bitsize(const uint8_t gr,
                                               const uint8_t scfsi_band,
                                               const side_info_t *side_info)
 {
-    /* page 25 scalefac_compress[gr][ch]*/
-    /* switch statement on block type*/
-    /* case 0: case 1: case 3:*/
-    /* if (scalefac_band <= 10) slen1 */
     assert(scalefac_band <= 20);
 
     uint8_t bitsize = 0;
@@ -1072,15 +1100,14 @@ static uint8_t s_decode_scalefac_band_bitsize(const uint8_t gr,
                     }
                     else /* scalefac_band = [11, 20] */ 
                     {
-                        /* Undefined */
+                        /* Invalid sccalefac_band */
                         bitsize = 0;
                     }
                     break;
                 case 1:
                     /// TODO: check specs (P.25), I think this is how it works:
-                    ///       if long block scalefac_band [0, 7] = slen1
-                    ///       if short block [0, 6] = slen1; [7, 11] = slen2
-                    
+                    ///       long block and short block conexist for some
+                    ///       scalefac_band
                     /* The ISO/IEC 11172-3 spec is worded terribly */
                     if (scalefac_band <= 6)
                     {
@@ -1090,19 +1117,20 @@ static uint8_t s_decode_scalefac_band_bitsize(const uint8_t gr,
                     {
                         bitsize = slen2;
                     }
-                    else 
+                    else /* scalefac_band = [11, 20] */ 
                     {
-                        /* Undefined */
+                        /* Invalid scalefac_band */
                         bitsize = 0;
                     }
                     break;
                 default:
-                    /* mixed_flog_flag is undefined */
+                    /* Invalid mixed_flog_flag */
                     bitsize = 0;
                     break;
             }
             break;
         default:
+            /* Invalid block type */
             bitsize = 0;
             break;
     }
