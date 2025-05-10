@@ -6,9 +6,15 @@
 /* Maximum number of channels (2 for MPEG-1 11172-3) */
 #define NCH_MAX 2u
 
+/* Maximum number of scalefactor bands (32 for MPEG-1 11172-3) */
+#define NUM_SCALEFAC_BAND_MAX 32u
+
 /* Maximum number of scfsi_band (NOT scalefactor bands) */
 /* (4 for MPEG-1 11172-3)                               */
 #define NUM_SCFSI_BAND_MAX 4u
+
+/* maximum number of short block windows (3 for MPEG-1 11172-3) */
+#define NUM_WINDOW_MAX 3u
 
 /* Uncompressed frame size, in bytes, for MPEG-1 Audio Layer 3 */
 #define FRAME_SIZE (1152u / 8u)
@@ -463,7 +469,7 @@ typedef struct {
  * Abbreviation
  * ------------
  * scfsi:   scalefactor selection information
- * NCH_MAX: maximum number of channels (defined in this file)
+ * NCH_MAX: maximum number of channels (defined in the beginning of the file)
  * ch:      channel number, starts at 0
  * gr:      granule number, starts at 0
  *
@@ -852,6 +858,29 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
 * Typedef's and function prototypes for decoding scale factors (scalefac)   *
 *                                                                           *
 *****************************************************************************/
+
+/*
+ * Abbreviation
+ * ------------
+ * NCH_MAX:                 maximum number of channels
+ * NUM_SCALEFAC_BAND_MAX:   maximum number of scalefactor bands
+ * NUM_WINDOW_MAX:          maximum number of short block windows
+ *                          (marcos are defined in the beginning of the file)
+ *
+ * Members
+ * -------
+ * scalefac_l[idx]      idx = (gr * (NCH_MAX * NUM_SCALEFAC_BAND_MAX) + 
+ *                             ch * NUM_SCALEFAC_BAND_MAX + scalefac_band)
+ * scalefac_s[idx]      idx = (gr * FOO + ch * BAR + 
+ *                             scalefac_band * NUM_WINDOW_MAX + window)
+ *                      where:
+ *                      FOO = NCH_MAX * NUM_SCALEFAC_BAND_MAX * NUM_WINDOW_MAX
+ *                      BAR = NUM_SCALEFAC_BAND_MAX * NUM_WINDOW_MAX
+ */
+typedef struct {
+    uint8_t scalefac_l[2u * NCH_MAX * NUM_SCALEFAC_BAND_MAX];
+    uint8_t scalefac_s[2u * NCH_MAX * NUM_SCALEFAC_BAND_MAX * NUM_WINDOW_MAX];
+} scalefac_t;
 
 /* 
  * Obtaining the scfsi_band from scalefac_band, yes they are different, I swear
