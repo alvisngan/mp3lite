@@ -912,7 +912,8 @@ static void s_decode_scalefac_slen(uint8_t *slen1,
                                    uint8_t *slen2,
                                    const uint8_t gr,         
                                    const uint8_t ch,
-                                   const uint8_t scfsi_band);
+                                   const uint8_t scfsi_band,
+                                   const side_info_t *side_info);
 
 /*
  * part2_length is defined in ISO/IEC 11172-3 as the number of BITS used to 
@@ -965,8 +966,7 @@ static uint8_t s_decode_scalefac_band_bitsize(const uint8_t scalefac_band,
                                               const uint8_t slen1,
                                               const uint8_t slen2,
                                               const bool get_long,
-                                              const side_info_gr_ch_t *side_info_gr_ch,
-                                              const side_info_t *side_info);
+                                              const side_info_gr_ch_t *side_info_gr_ch);
 
 static bool s_decode_scalefac(const uint8_t *main_data_ptr,
                               const side_info_t *side_info,
