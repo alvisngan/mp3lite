@@ -882,6 +882,27 @@ typedef struct {
     uint8_t scalefac_s[2u * NCH_MAX * NUM_SCALEFAC_BAND_MAX * NUM_WINDOW_MAX];
 } scalefac_t;
 
+/*
+ * Helper function for finding the current index of the scalefac_l array in 
+ * scalefac_t struct
+ *
+ * All parameter starts at index 0
+ */
+static uint32_t s_scalefac_l_idx(const uint8_t gr,
+                                 const uint8_t ch,
+                                 const uint8_t scalefac_band);
+
+/*
+ * Helper function for finding the current index of the scalefac_s array in 
+ * scalefac_t struct
+ *
+ * All parameter starts at index 0
+ */
+static uint32_t s_scalefac_s_idx(const uint8_t gr,
+                                 const uint8_t ch,
+                                 const uint8_t scalefac_band,
+                                 const uint8_t window);
+
 /* 
  * Obtaining the scfsi_band from scalefac_band, yes they are different, I swear
  * (for more detail see ./docs/naming_convention.md)
@@ -1015,6 +1036,37 @@ static bool s_decode_scalefac_gr_ch_loop(const uint8_t *gr_ch_ptr,
  * Source code for decoding scale factors (scalefac)                         *
  *                                                                           *
  *****************************************************************************/
+
+
+static uint32_t s_scalefac_l_idx(const uint8_t gr,
+                                 const uint8_t ch,
+                                 const uint8_t scalefac_band)
+{
+    assert(gr < 2u);
+    assert(ch < NCH_MAX);
+    assert(scalefac_band < NUM_SCALEFAC_BAND_MAX);
+
+    return (gr * (NCH_MAX * NUM_SCALEFAC_BAND_MAX) + 
+            ch * NUM_SCALEFAC_BAND_MAX + 
+            scalefac_band);
+}
+
+
+static uint32_t s_scalefac_s_idx(const uint8_t gr,
+                                 const uint8_t ch,
+                                 const uint8_t scalefac_band,
+                                 const uint8_t window)
+{
+    assert(gr < 2u);
+    assert(ch < NCH_MAX);
+    assert(scalefac_band < NUM_SCALEFAC_BAND_MAX);
+    assert(window < NUM_WINDOW_MAX);
+
+    return (gr * NCH_MAX * NUM_SCALEFAC_BAND_MAX * NUM_WINDOW_MAX + 
+            ch * NUM_SCALEFAC_BAND_MAX * NUM_WINDOW_MAX + 
+            scalefac_band * NUM_WINDOW_MAX + 
+            window);
+}
 
 
 static uint8_t s_decode_scalefac_scfsi_band(const uint8_t scalefac_band)
