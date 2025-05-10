@@ -966,7 +966,7 @@ static uint8_t s_decode_scalefac_band_bitsize(const uint8_t scalefac_band,
                                               const uint8_t slen1,
                                               const uint8_t slen2,
                                               const bool get_long,
-                                              const side_info_gr_ch_t side_info_gr_ch,
+                                              const side_info_gr_ch_t *side_info_gr_ch,
                                               const side_info_t *side_info);
 
 static bool s_decode_scalefac(const uint8_t *main_data_ptr,
@@ -1053,26 +1053,18 @@ static void s_decode_scalefac_slen(uint8_t *slen1,
 }
 
 
-static uint8_t s_decode_scalefac_band_bitsize(const uint8_t gr,         
-                                              const uint8_t ch,
-                                              const uint8_t scalefac_band,
-                                              const uint8_t scfsi_band,
+static uint8_t s_decode_scalefac_band_bitsize(const uint8_t scalefac_band,
+                                              const uint8_t slen1,
+                                              const uint8_t slen2,
+                                              const bool get_long,
+                                              const side_info_gr_ch_t *side_info_gr_ch,
                                               const side_info_t *side_info)
 {
     assert(scalefac_band <= 20);
 
     uint8_t bitsize = 0;
 
-    /* temporary granule number where scalefac are stored */
-    uint8_t gr_t = s_decode_scalefac_location(gr, ch, scfsi_band, side_info);
-    const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr_t, ch)]);
-
-    /* the bitsize is dependent on the block_type, scalefac_band and slen */
-    uint8_t slen1 = 0;
-    uint8_t slen2 = 0;
-    s_decode_scalefac_slen(&slen1, &slen2, gr, ch, scfsi_band, side_info);
-
-    switch (gr_ch->block_type) 
+    switch (side_info_gr_ch->block_type) 
     {
         case 0:
         case 1:
@@ -1087,7 +1079,7 @@ static uint8_t s_decode_scalefac_band_bitsize(const uint8_t gr,
             }
             break;
         case 2:
-            switch (gr_ch->mixed_block_flag)
+            switch (side_info_gr_ch->mixed_block_flag)
             {
                 case 0:
                     if (scalefac_band <= 5)
@@ -1105,22 +1097,39 @@ static uint8_t s_decode_scalefac_band_bitsize(const uint8_t gr,
                     }
                     break;
                 case 1:
-                    /// TODO: check specs (P.25), I think this is how it works:
-                    ///       long block and short block conexist for some
-                    ///       scalefac_band
                     /* The ISO/IEC 11172-3 spec is worded terribly */
-                    if (scalefac_band <= 6)
+                    if (get_long)
                     {
-                        bitsize = slen1;
+                        if (scalefac_band <= 7)
+                        {
+                            bitsize = slen1;
+                        }
+                        else 
+                        {
+                            /* Other scalefac_band are either undef or slen2 */
+                            bitsize = 0;
+                        }
                     }
-                    else if (scalefac_band <= 11)
+                    else 
                     {
-                        bitsize = slen2;
-                    }
-                    else /* scalefac_band = [11, 20] */ 
-                    {
-                        /* Invalid scalefac_band */
-                        bitsize = 0;
+                        if (scalefac_band <= 2)
+                        {
+                            /* First two bands are block_type == 0 (reserved) */
+                            bitsize = 0;
+                        }
+                        else if (scalefac_band <= 5)
+                        {
+                            bitsize = slen1;
+                        }
+                        else if (scalefac_band <= 11)
+                        {
+                            bitsize = slen2;
+                        }
+                        else /* scalefac_band = [11, 20] */ 
+                        {
+                            /* Invalid scalefac_band */
+                            bitsize = 0;
+                        }
                     }
                     break;
                 default:
