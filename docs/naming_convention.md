@@ -27,6 +27,7 @@ These are the variable naming convention I try to stick to, unless the variable 
 `bitsize` Number of bits of the data
 
 
+
 ## Comment Style
 `/* Comment here */`
 Capitalized
@@ -53,3 +54,53 @@ one line between function prototypes since there are comment documentations
 
 ## Function Parameters Order
 Not sure lol
+use ISO/IEC 11172-3 order `gr`, `ch`, `scalefac_band`, `window`
+granule
+
+## for  loop
+### Looping through an entire array
+Use `<`, not `<=` when looping through an entire array
+As we loop through from the first element (`i = 0`)
+to the end (`i = N - 1`), it is more convenient and less error prone to write `N` instead of `N - 1`
+It is also quicker to tell that you are looping through an entire array as well
+```c
+/* Looping through an array of size N */
+for (i = 0; i < N; ++i)
+{
+    /* loop */
+}
+```
+
+### Looping through a specific range 
+use `<=`, not `<` when looping through an a specific range, like from A to B
+```c
+/* Read as from A to B */
+for (i = A; i <= B; ++i)
+{
+    /* Loop */
+}
+```
+
+### Increment
+use `++i` instead of `i++`
+While in most cases they produce the same result, but in all cases `++i` will never be slower than `i++`
+
+
+### Decrement
+Aviod decrement 
+```c
+/* Don't do this */
+for (uint32_t i = (N - 1); i >= 0; --i)
+{
+    /* The loop does not end because the */
+    /* condition i >= 0 is always true   */
+}
+
+/* Do this instead */
+uint32_t i;
+for (uint32_t j = 0; j < N; ++j)
+{
+    i = N - j - 1;
+    /* Loop */
+}
+```
