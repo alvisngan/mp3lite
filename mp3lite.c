@@ -512,7 +512,7 @@ static uint8_t s_decode_side_info(const uint8_t *side_info_ptr,
  *
  * \param ch            current channel, starts at 0
  */
-static uint8_t s_scfsi_idx(const uint8_t scfsi_band, const uint8_t ch);
+static uint8_t s_scfsi_idx(const uint8_t ch, const uint8_t scfsi_band);
 
 /*
  * Helper function for finding the current index of the scfsi array in 
@@ -598,7 +598,7 @@ static uint8_t s_decode_side_info(const uint8_t *side_info_ptr,
 }
 
 
-static uint8_t s_scfsi_idx(const uint8_t scfsi_band, const uint8_t ch)
+static uint8_t s_scfsi_idx(const uint8_t ch, const uint8_t scfsi_band)
 {
     assert(scfsi_band < NUM_SCFSI_BAND_MAX);
     assert(ch < NCH_MAX);
@@ -643,7 +643,7 @@ static bool s_decode_side_info_scfsi(const uint8_t *side_info_ptr,
                 for (uint8_t scfsi_band = 0; scfsi_band < 4u; ++scfsi_band)
                 {
                     foo = (uint8_t) (((scfsi_temp) >> bitshift) & 0x01u);
-                    side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] = foo;
+                    side_info->scfsi[s_scfsi_idx(ch, scfsi_band)] = foo;
                     bitshift--;
                 }
             }
@@ -658,7 +658,7 @@ static bool s_decode_side_info_scfsi(const uint8_t *side_info_ptr,
             for (uint8_t scfsi_band = 0; scfsi_band < 4u; ++scfsi_band)
             {
                 foo = (uint8_t) (((scfsi_temp) >> bitshift) & 0x01u);
-                side_info->scfsi[s_scfsi_idx(scfsi_band, 0)] = foo; 
+                side_info->scfsi[s_scfsi_idx(0, scfsi_band)] = foo; 
                 bitshift--;
             }
             success = true;
@@ -855,7 +855,7 @@ static uint32_t s_next_granule_pos(const side_info_t *side_info,
 
 /*****************************************************************************
 *                                                                           *
-* Typedef's and function prototypes for decoding scale factors (scalefac)   *
+* Typedef's and function prototypes for decoding scalefactors (scalefac)   *
 *                                                                           *
 *****************************************************************************/
 
@@ -1020,7 +1020,7 @@ static uint8_t s_decode_scalefac_band_bitsize(const uint8_t scalefac_band,
 
 static bool s_decode_scalefac(const uint8_t *main_data_ptr,
                               const side_info_t *side_info,
-                              const header_info_t header_info);
+                              const header_info_t *header_info);
 
 /*
  * Decoding scalefactor for EACH granule and channel, 
@@ -1104,7 +1104,7 @@ static uint8_t s_decode_scalefac_location(const uint8_t gr,
 {
     uint8_t gr_t = gr; /* temporary granule number */
 
-    if ((side_info->scfsi[s_scfsi_idx(scfsi_band, ch)] == 1u) && (gr == 1u))
+    if ((side_info->scfsi[s_scfsi_idx(ch, scfsi_band)] == 1u) && (gr == 1u))
     {
         gr_t = 0; /* scalefactors for gr==0 is valid for gr==1 */
     }
@@ -1293,12 +1293,61 @@ static uint32_t s_decode_scalefac_part2_length(const uint8_t gr,
 
 static bool s_decode_scalefac(const uint8_t *main_data_ptr,
                               const side_info_t *side_info,
-                              const header_info_t header_info)
+                              const header_info_t *header_info)
 {
     bool success = false;
 
-    /* gr_ch_ptr to be aligned the byte boundary */
-    uint8_t gr_ch_ptr[18u]; /* Max 144 bits for each [gr][ch] */
+    const uint8_t nch = (header_info->mode == 3u) ? 1u : 2u;
+
+    // /* gr_ch_ptr to be aligned the byte boundary */
+    // uint8_t gr_ch_ptr[18u]; /* Max 144 bits for each [gr][ch] */
+
+    
+
+    for (uint8_t gr = 0; gr < 2u; ++gr)
+    {
+        for (uint8_t ch = 0; ch < nch; ++ch)
+        {
+            const side_info_gr_ch_t *gr_ch = &(side_info->gr_ch[s_gr_ch_idx(gr, ch)]);
+            assert(gr_ch->window_switching_flag <= 1);
+            assert(gr_ch->block_type <= 3);
+
+            if ((gr_ch->window_switching_flag == 1) && 
+                (gr_ch->block_type == 2))
+            {
+                if (gr_ch->mixed_block_flag)
+                {
+                    /* scalefactor band (sfb) */
+                    for (uint8_t sfb = 0; sfb < 8; ++sfb)
+                    {
+
+                    }
+                    for (uint8_t sfb = 0; sfb < 12; ++sfb)
+                    {
+                        for (uint8_t window = 0; window < 3; ++window)
+                        {
+
+                        }
+                    }
+                }
+                else 
+                {
+                    for (uint8_t sfb = 0; sfb < 12; ++sfb)
+                    {
+                        for (uint8_t window = 0; window < 3; ++window)
+                        {
+
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (side_info->scfsi[s_scfsi_idx(ch, 0)])
+            }
+ 
+        }
+    }
 
     return success;
 }
